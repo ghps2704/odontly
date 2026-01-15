@@ -26,12 +26,23 @@ interface ContextData {
   accounts: Account[];
 }
 
+// Helper safely access env vars in browser or node
+const getApiKey = () => {
+    try {
+        return process.env.API_KEY;
+    } catch (e) {
+        return undefined;
+    }
+}
+
 export const generateAIResponse = async (query: string, data: ContextData): Promise<string> => {
-  if (!process.env.API_KEY) {
-    return "Erro: Chave de API não configurada.";
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    return "Erro: Chave de API (Gemini) não configurada no ambiente.";
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   
   // Identify Margin Erosion for Context
   const erodingItems = data.items.filter(i => {
@@ -76,9 +87,10 @@ export const generateAIResponse = async (query: string, data: ContextData): Prom
 
 // Specialized function for the Procurement Modal
 export const searchSuppliers = async (itemName: string): Promise<string> => {
-    if (!process.env.API_KEY) return "Erro: API Key ausente.";
+    const apiKey = getApiKey();
+    if (!apiKey) return "Erro: API Key ausente.";
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     
     try {
         const response = await ai.models.generateContent({
