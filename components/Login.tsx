@@ -18,10 +18,10 @@ const Login: React.FC = () => {
     try {
       const success = await login(email, password);
       if (!success) {
-        setError('Credenciais inválidas. Verifique seu e-mail e senha.');
+        setError('Acesso negado. Verifique seu e-mail e senha.');
       }
     } catch (err) {
-      setError('Ocorreu um erro ao tentar conectar. Tente novamente.');
+      setError('Erro de conexão. Verifique sua internet.');
     } finally {
       setIsLoading(false);
     }
@@ -43,11 +43,11 @@ const Login: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
             So<span className="text-amber-500 italic">z</span>io ERP
           </h1>
-          <p className="text-slate-500 text-sm mt-2">Acesso Restrito para Parceiros</p>
+          <p className="text-slate-500 text-sm mt-2">Acesso Seguro</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3">
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3 animate-pulse">
             <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
             <p className="text-sm text-red-600 font-medium">{error}</p>
           </div>
@@ -55,7 +55,7 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">E-mail Corporativo</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">E-mail</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-slate-400" />
@@ -64,7 +64,7 @@ const Login: React.FC = () => {
                 type="email"
                 required
                 className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                placeholder="seunome@empresa.com"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -95,19 +95,18 @@ const Login: React.FC = () => {
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <Loader2 size={18} className="animate-spin" /> Acessando...
+                <Loader2 size={18} className="animate-spin" /> Autenticando...
               </span>
             ) : (
-              'Entrar no Sistema'
+              'Entrar'
             )}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center border-t border-slate-100 pt-4">
           <p className="text-xs text-slate-400">
-            Não possui acesso? Entre em contato com seu administrador.
-            <br />
-            Este é um ambiente monitorado.
+            Esqueceu sua senha ou precisa de acesso? <br/>
+            Contate o administrador do sistema.
           </p>
         </div>
       </div>
