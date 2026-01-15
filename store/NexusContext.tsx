@@ -155,17 +155,24 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // --- AUTH CHECK ON MOUNT ---
   useEffect(() => {
     const checkSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-            setUser({
-                email: session.user.email!,
-                companyId: session.user.id, 
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-                uid: session.user.id
-            });
-            await fetchData(session.user.id);
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            
+            if (session?.user) {
+                setUser({
+                    email: session.user.email!,
+                    companyId: session.user.id, 
+                    name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+                    uid: session.user.id
+                });
+                await fetchData(session.user.id);
+            }
+        } catch (error) {
+            console.warn("Session check failed (likely placeholder URL):", error);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
     checkSession();
 
@@ -210,16 +217,21 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       // --- REAL SUPABASE LOGIN ---
-      const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password: pass
-      });
-      
-      if (error) {
-          console.error('Login Failed:', error.message);
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password: pass
+        });
+        
+        if (error) {
+            console.error('Login Failed:', error.message);
+            return false;
+        }
+        return !!data.user;
+      } catch (e: any) {
+          console.error("Login Error (Network/Config):", e);
           return false;
       }
-      return !!data.user;
   };
 
   const logout = async () => {
