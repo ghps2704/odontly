@@ -124,56 +124,61 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchData = useCallback(async (userId: string) => {
     if (userId === 'test-user-id') return;
 
-    // Carregamento independente para garantir que falha em uma tabela não quebre todo o app
+    // Helper to load tables safely
     const loadTable = async (table: string, setter: (data: any) => void) => {
         try {
             const { data, error } = await supabase.from(table).select('*').eq('user_id', userId);
-            if (error) throw error;
+            if (error) {
+                console.error(`Error loading ${table}:`, error.message);
+                return;
+            }
             if (data) setter(data);
         } catch (e) {
-            console.warn(`Erro ao carregar ${table}:`, e);
+            console.warn(`Exception loading ${table}:`, e);
         }
     };
 
-    // Settings (Tratamento especial pois é single)
     try {
-        const { data: sData } = await supabase.from('settings').select('data').eq('user_id', userId).maybeSingle();
-        if (sData?.data) {
-            setSettings(sData.data);
-            const customCats = sData.data.customCategories || [];
-            setCategories([...INITIAL_CATEGORIES, ...customCats]);
-        }
-    } catch (e) { console.warn("Erro ao carregar settings", e); }
-
-    // Carregar entidades em paralelo (Fault Tolerant)
-    await Promise.all([
-        loadTable('items', setItems),
-        loadTable('transactions', setTransactions),
-        loadTable('appointments', setAppointments),
-        loadTable('contacts', setContacts),
-        loadTable('accounts', setAccounts),
-        loadTable('professionals', setProfessionals),
-        loadTable('invoices', setInvoices)
-    ]);
+        // Parallel execution for speed, but individual error handling via loadTable
+        await Promise.all([
+            loadTable('items', setItems),
+            loadTable('transactions', setTransactions),
+            loadTable('appointments', setAppointments),
+            loadTable('contacts', setContacts),
+            loadTable('accounts', setAccounts),
+            loadTable('professionals', setProfessionals),
+            loadTable('invoices', setInvoices),
+            // Settings is a bit different
+            (async () => {
+                const { data: sData } = await supabase.from('settings').select('data').eq('user_id', userId).maybeSingle();
+                if (sData?.data) {
+                    setSettings(sData.data);
+                    const customCats = sData.data.customCategories || [];
+                    setCategories([...INITIAL_CATEGORIES, ...customCats]);
+                }
+            })()
+        ]);
+    } catch (err) {
+        console.error("Critical error in fetchData:", err);
+    }
   }, []);
 
   useEffect(() => {
     let mounted = true;
-    let authInitialized = false;
 
-    // Timeout de segurança para não travar no loading
+    // Failsafe timeout
     const timeoutId = setTimeout(() => {
-      if (!authInitialized && mounted) {
-        console.warn("Auth initialization timed out after 5s.");
+      if (isLoading && mounted) {
+        console.warn("Auth initialization timed out. Forcing UI render.");
         setIsLoading(false);
       }
-    }, 5000);
+    }, 8000); // Increased to 8s for slower connections
 
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
+        if (error) throw error;
 
         if (session?.user && mounted) {
           const newUser = {
@@ -189,35 +194,36 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           clearData();
         }
       } catch (error) {
-        console.warn("Erro na inicialização da sessão:", error);
+        console.warn("Auth Init Error:", error);
         setUser(null);
         clearData();
       } finally {
-        authInitialized = true;
-        clearTimeout(timeoutId);
         if (mounted) setIsLoading(false);
+        clearTimeout(timeoutId);
       }
     };
 
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Handle login / token refresh
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user && mounted) {
-         // Só atualiza se o usuário mudou ou estava nulo
-         setUser(prev => {
-             if (prev?.uid === session.user.id) return prev;
-             return {
-                email: session.user.email!,
-                companyId: session.user.id,
-                name: session.user.user_metadata?.name || 'Usuário',
-                uid: session.user.id
-             };
-         });
-         
-         if (event === 'SIGNED_IN') {
+          const newUser = {
+            email: session.user.email!,
+            companyId: session.user.id,
+            name: session.user.user_metadata?.name || 'Usuário',
+            uid: session.user.id
+          };
+          
+          // Only update state if user actually changed to avoid re-renders
+          setUser(prev => prev?.uid === newUser.uid ? prev : newUser);
+          
+          if (event === 'SIGNED_IN') {
              await fetchData(session.user.id);
-         }
-      } else if (event === 'SIGNED_OUT' && mounted) {
+          }
+      } 
+      // Handle logout
+      else if (event === 'SIGNED_OUT' && mounted) {
         setUser(null);
         clearData();
         setIsLoading(false);
@@ -232,6 +238,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [fetchData, clearData]);
 
   const login = async (email: string, pass: string): Promise<boolean> => {
+    // Backdoor for testing
     if (email === 'admin@sozio.com' && pass === '123456') {
       const testUser = {
         email: 'admin@sozio.com',
@@ -240,7 +247,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         uid: 'test-user-id'
       };
       setUser(testUser);
-      // Seed Data Mock
       setItems([
         { id: '1', name: 'Consultoria Empresarial', type: 'SERVICE', price: 1500, cost: 0, stock: 0, minStock: 0, unit: 'SV', desiredMargin: 100 },
         { id: '2', name: 'Licença de Software', type: 'PRODUCT', price: 250, cost: 100, stock: 50, minStock: 10, unit: 'UN', desiredMargin: 60 }
@@ -250,12 +256,10 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     try {
-      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
       
       if (error) {
         console.error('Login Failed:', error.message);
-        setIsLoading(false);
         return false;
       }
 
@@ -267,35 +271,40 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               uid: data.user.id
           };
           setUser(newUser);
+          // Wait for data fetch before returning true to ensure dashboard isn't empty
           await fetchData(data.user.id);
-          setIsLoading(false);
           return true;
       }
       return false;
 
-    } catch (e: any) {
-      console.error("Login Error (Network/Config):", e);
-      setIsLoading(false);
+    } catch (e) {
+      console.error("Login Exception:", e);
       return false;
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
+    // 1. Optimistic UI Update: Clear user immediately so App.tsx switches to Login
+    setUser(null);
+    clearData();
+
+    // 2. Perform API call in background (don't block UI)
     try {
-      if (user?.uid !== 'test-user-id') {
-        await supabase.auth.signOut();
-      }
+        if (user?.uid !== 'test-user-id') {
+            await supabase.auth.signOut();
+        }
     } catch (e) {
-      console.error("Erro ao deslogar do Supabase:", e);
-    } finally {
-      setUser(null);
-      clearData();
-      setIsLoading(false);
+        console.error("Background signout error:", e);
     }
+    
+    // 3. Safety: Reload page to ensure clean memory state (fixes any lingering chart/listener issues)
+    // Using setTimeout to allow the browser to paint the login screen first if needed
+    setTimeout(() => {
+        window.location.reload();
+    }, 100);
   };
 
-  // --- CRUD HELPERS (With simple error logging) ---
+  // --- CRUD HELPERS ---
 
   const insertDB = async (table: string, data: any) => {
     if (!user || user.uid === 'test-user-id') return;
@@ -472,7 +481,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateSettings = async (s: AppSettings) => {
     setSettings(s);
     if (!user || user.uid === 'test-user-id') return;
-    // Usando upsert para garantir
     const { error } = await supabase.from('settings').upsert({ user_id: user.uid, data: s }, { onConflict: 'user_id' });
     if (error) console.error("Error updating settings:", error);
   };
