@@ -14,7 +14,8 @@ import {
   Lock,
   Users,
   FileText,
-  Hexagon
+  Hexagon,
+  LogOut
 } from 'lucide-react';
 import Dashboard from './Dashboard';
 import Catalog from './Catalog';
@@ -26,7 +27,7 @@ import Contacts from './Contacts';
 import Fiscal from './Fiscal';
 
 const Layout: React.FC = () => {
-  const { settings, verifyPin } = useNexus();
+  const { settings, verifyPin, logout, user } = useNexus();
   const [currentView, setCurrentView] = useState<ViewState>('DASHBOARD');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
@@ -57,6 +58,12 @@ const Layout: React.FC = () => {
         setIsSidebarOpen(false);
     } else {
         setPinError(true);
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("Deseja realmente sair do sistema?")) {
+      logout();
     }
   };
 
@@ -95,6 +102,7 @@ const Layout: React.FC = () => {
         <div className="px-6 pb-4">
             <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">Empresa</p>
             <div className="text-sm font-medium truncate">{settings.companyName}</div>
+            <div className="text-[10px] text-slate-400 mt-1 truncate">{user?.email}</div>
         </div>
 
         <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
@@ -109,13 +117,20 @@ const Layout: React.FC = () => {
           </div>
         </nav>
 
-        <div className="p-4">
+        <div className="p-4 space-y-2">
             <button 
                 onClick={() => setIsAIChatOpen(!isAIChatOpen)}
                 className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white p-3 rounded-lg shadow-lg hover:shadow-amber-500/30 transition-all border border-white/10 hover:scale-[1.02] active:scale-95"
             >
                 <Sparkles size={18} />
                 <span className="font-bold text-sm">Sozio AI</span>
+            </button>
+            <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center space-x-2 text-slate-300 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all text-xs"
+            >
+                <LogOut size={16} />
+                <span>Sair do Sistema</span>
             </button>
         </div>
       </aside>
@@ -147,7 +162,7 @@ const Layout: React.FC = () => {
                  </h2>
                  <button onClick={() => setIsSidebarOpen(false)}><X size={24} /></button>
               </div>
-              <nav className="space-y-2">
+              <nav className="flex-1 space-y-2">
                 <NavItem view="DASHBOARD" icon={LayoutDashboard} label="Visão Geral" />
                 <NavItem view="CONTACTS" icon={Users} label="Contatos" />
                 <NavItem view="CATALOG" icon={Package} label="Catálogo" />
@@ -156,6 +171,15 @@ const Layout: React.FC = () => {
                 <NavItem view="FINANCE" icon={CircleDollarSign} label="Financeiro" />
                 <NavItem view="SETTINGS" icon={Settings} label="Configurações" />
               </nav>
+              <div className="pt-4 border-t border-white/10 space-y-2">
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 p-3 text-slate-300 hover:text-white rounded-lg"
+                  >
+                    <LogOut size={20} />
+                    <span>Sair</span>
+                  </button>
+              </div>
            </div>
         </div>
       )}

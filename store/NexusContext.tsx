@@ -125,7 +125,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (userId === 'test-user-id') return;
 
     try {
-      // Pergunta específica para settings (Perfil Sincronizado RF004)
       const { data: sData, error: sError } = await supabase
         .from('settings')
         .select('data')
@@ -139,7 +138,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories([...INITIAL_CATEGORIES, ...customCats]);
       }
 
-      // Busca paralela para otimizar tempo de carregamento
       const [
         { data: iData },
         { data: tData },
@@ -173,13 +171,22 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     let mounted = true;
+    let authInitialized = false;
+
+    const timeoutId = setTimeout(() => {
+      if (!authInitialized && mounted) {
+        console.warn("Auth initialization timed out after 5s.");
+        setIsLoading(false);
+      }
+    }, 5000);
 
     const initializeAuth = async () => {
       try {
-        // Recuperação de Sessão (Auth Persistence)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) throw sessionError;
+        if (sessionError) {
+          throw sessionError;
+        }
 
         if (session?.user && mounted) {
           const newUser = {
@@ -190,10 +197,17 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           };
           setUser(newUser);
           await fetchData(session.user.id);
+        } else if (!session && mounted) {
+          setUser(null);
+          clearData();
         }
       } catch (error) {
         console.warn("Erro na inicialização da sessão:", error);
+        setUser(null);
+        clearData();
       } finally {
+        authInitialized = true;
+        clearTimeout(timeoutId);
         if (mounted) setIsLoading(false);
       }
     };
@@ -215,17 +229,28 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setUser(null);
         clearData();
         setIsLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user && mounted) {
+        if (!user) {
+             const newUser = {
+                email: session.user.email!,
+                companyId: session.user.id,
+                name: session.user.user_metadata?.name || 'Usuário',
+                uid: session.user.id
+            };
+            setUser(newUser);
+            await fetchData(session.user.id);
+        }
       }
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(timeoutId);
     };
   }, [fetchData, clearData]);
 
   const login = async (email: string, pass: string): Promise<boolean> => {
-    // BACKDOOR PARA TESTE
     if (email === 'admin@sozio.com' && pass === '123456') {
       const testUser = {
         email: 'admin@sozio.com',
@@ -256,21 +281,22 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
       if (user?.uid !== 'test-user-id') {
         await supabase.auth.signOut();
       }
-      setUser(null);
-      clearData();
     } catch (e) {
-      console.error("Erro ao deslogar:", e);
-      // Forçar limpeza de estado mesmo em erro
+      console.error("Erro ao deslogar do Supabase:", e);
+    } finally {
       setUser(null);
       clearData();
+      setIsLoading(false);
+      // Opcional: Recarregar a página para limpar qualquer cache residual
+      // window.location.href = window.location.origin;
     }
   };
 
-  // HELPERS DB COM TRATAMENTO RLS (TRY/CATCH)
   const insertDB = async (table: string, data: any) => {
     if (!user || user.uid === 'test-user-id') return;
     try {
@@ -302,7 +328,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // ITEMS
   const addItem = (item: Item) => {
     setItems(prev => [...prev, item]);
     insertDB('items', item);
@@ -333,7 +358,6 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateDB('items', itemId, updatedItem);
   };
 
-  // TRANSACTIONS
   const addTransaction = async (tx: Transaction, generateRecurrence = false) => {
     const txWithFlags: Transaction = {
       ...tx,
