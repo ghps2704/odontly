@@ -123,23 +123,27 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const fetchData = useCallback(async (userId: string) => {
     if (userId === 'test-user-id') return;
+    console.log("NexusContext: Iniciando carregamento de dados para", userId);
 
     // Helper to load tables safely
     const loadTable = async (table: string, setter: (data: any) => void) => {
         try {
             const { data, error } = await supabase.from(table).select('*').eq('user_id', userId);
             if (error) {
-                console.error(`Error loading ${table}:`, error.message);
+                console.error(`NexusContext: Erro ao carregar tabela '${table}':`, error.message);
                 return;
             }
-            if (data) setter(data);
+            if (data) {
+                setter(data);
+                console.log(`NexusContext: ${table} carregados:`, data.length);
+            }
         } catch (e) {
-            console.warn(`Exception loading ${table}:`, e);
+            console.warn(`NexusContext: Exceção ao carregar tabela '${table}':`, e);
         }
     };
 
     try {
-        // Parallel execution for speed, but individual error handling via loadTable
+        // Carregamento paralelo, mas com tratamento individual para não quebrar o Promise.all
         await Promise.all([
             loadTable('items', setItems),
             loadTable('transactions', setTransactions),
@@ -148,18 +152,26 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             loadTable('accounts', setAccounts),
             loadTable('professionals', setProfessionals),
             loadTable('invoices', setInvoices),
-            // Settings is a bit different
+            // Configurações - Tratamento especial em bloco isolado
             (async () => {
-                const { data: sData } = await supabase.from('settings').select('data').eq('user_id', userId).maybeSingle();
-                if (sData?.data) {
-                    setSettings(sData.data);
-                    const customCats = sData.data.customCategories || [];
-                    setCategories([...INITIAL_CATEGORIES, ...customCats]);
+                try {
+                    const { data: sData, error } = await supabase.from('settings').select('data').eq('user_id', userId).maybeSingle();
+                    if (error) throw error;
+                    
+                    if (sData?.data) {
+                        setSettings(sData.data);
+                        const customCats = sData.data.customCategories || [];
+                        setCategories([...INITIAL_CATEGORIES, ...customCats]);
+                        console.log("NexusContext: Configurações carregadas.");
+                    }
+                } catch (e) {
+                    console.warn("NexusContext: Erro ao carregar settings (usando padrão):", e);
                 }
             })()
         ]);
+        console.log("NexusContext: Carregamento de dados concluído.");
     } catch (err) {
-        console.error("Critical error in fetchData:", err);
+        console.error("NexusContext: Erro crítico no fetchData:", err);
     }
   }, []);
 
@@ -169,18 +181,22 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Failsafe timeout
     const timeoutId = setTimeout(() => {
       if (isLoading && mounted) {
-        console.warn("Auth initialization timed out. Forcing UI render.");
+        console.warn("NexusContext: Auth initialization timed out. Forcing UI render.");
         setIsLoading(false);
       }
-    }, 8000); // Increased to 8s for slower connections
+    }, 8000); 
 
     const initializeAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (error) throw error;
+        if (error) {
+            console.warn("NexusContext: Erro no getSession:", error.message);
+            throw error;
+        }
 
         if (session?.user && mounted) {
+          console.log("NexusContext: Sessão encontrada na inicialização.");
           const newUser = {
             email: session.user.email!,
             companyId: session.user.id,
@@ -190,11 +206,12 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setUser(newUser);
           await fetchData(session.user.id);
         } else if (!session && mounted) {
+          console.log("NexusContext: Nenhuma sessão ativa.");
           setUser(null);
           clearData();
         }
       } catch (error) {
-        console.warn("Auth Init Error:", error);
+        console.warn("NexusContext: Auth Init Exception:", error);
         setUser(null);
         clearData();
       } finally {
@@ -206,7 +223,8 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Handle login / token refresh
+      console.log("NexusContext: Auth Change Event:", event);
+      
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user && mounted) {
           const newUser = {
             email: session.user.email!,
@@ -215,14 +233,15 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             uid: session.user.id
           };
           
-          // Only update state if user actually changed to avoid re-renders
-          setUser(prev => prev?.uid === newUser.uid ? prev : newUser);
+          setUser(prev => {
+              if (prev?.uid === session.user.id) return prev;
+              return newUser;
+          });
           
           if (event === 'SIGNED_IN') {
              await fetchData(session.user.id);
           }
       } 
-      // Handle logout
       else if (event === 'SIGNED_OUT' && mounted) {
         setUser(null);
         clearData();
@@ -271,8 +290,12 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               uid: data.user.id
           };
           setUser(newUser);
-          // Wait for data fetch before returning true to ensure dashboard isn't empty
-          await fetchData(data.user.id);
+          // Aguarda o carregamento dos dados, mas não falha o login se apenas dados falharem
+          try {
+             await fetchData(data.user.id);
+          } catch(err) {
+             console.error("Dados não carregaram pós-login, mas autenticação OK", err);
+          }
           return true;
       }
       return false;
@@ -284,21 +307,15 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = async () => {
-    // 1. Optimistic UI Update: Clear user immediately so App.tsx switches to Login
     setUser(null);
     clearData();
-
-    // 2. Perform API call in background (don't block UI)
     try {
         if (user?.uid !== 'test-user-id') {
             await supabase.auth.signOut();
         }
     } catch (e) {
-        console.error("Background signout error:", e);
+        console.error("Erro no signout:", e);
     }
-    
-    // 3. Safety: Reload page to ensure clean memory state (fixes any lingering chart/listener issues)
-    // Using setTimeout to allow the browser to paint the login screen first if needed
     setTimeout(() => {
         window.location.reload();
     }, 100);
