@@ -124,55 +124,44 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const fetchData = useCallback(async (userId: string) => {
     if (userId === 'test-user-id') return;
 
+    // Carregamento independente para garantir que falha em uma tabela não quebre todo o app
+    const loadTable = async (table: string, setter: (data: any) => void) => {
+        try {
+            const { data, error } = await supabase.from(table).select('*').eq('user_id', userId);
+            if (error) throw error;
+            if (data) setter(data);
+        } catch (e) {
+            console.warn(`Erro ao carregar ${table}:`, e);
+        }
+    };
+
+    // Settings (Tratamento especial pois é single)
     try {
-      const { data: sData, error: sError } = await supabase
-        .from('settings')
-        .select('data')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (sError) console.warn("Erro ao buscar settings:", sError.message);
-      if (sData?.data) {
-        setSettings(sData.data);
-        const customCats = sData.data.customCategories || [];
-        setCategories([...INITIAL_CATEGORIES, ...customCats]);
-      }
+        const { data: sData } = await supabase.from('settings').select('data').eq('user_id', userId).maybeSingle();
+        if (sData?.data) {
+            setSettings(sData.data);
+            const customCats = sData.data.customCategories || [];
+            setCategories([...INITIAL_CATEGORIES, ...customCats]);
+        }
+    } catch (e) { console.warn("Erro ao carregar settings", e); }
 
-      const [
-        { data: iData },
-        { data: tData },
-        { data: aData },
-        { data: cData },
-        { data: acData },
-        { data: pData },
-        { data: invData }
-      ] = await Promise.all([
-        supabase.from('items').select('*').eq('user_id', userId),
-        supabase.from('transactions').select('*').eq('user_id', userId),
-        supabase.from('appointments').select('*').eq('user_id', userId),
-        supabase.from('contacts').select('*').eq('user_id', userId),
-        supabase.from('accounts').select('*').eq('user_id', userId),
-        supabase.from('professionals').select('*').eq('user_id', userId),
-        supabase.from('invoices').select('*').eq('user_id', userId)
-      ]);
-
-      if (iData) setItems(iData);
-      if (tData) setTransactions(tData);
-      if (aData) setAppointments(aData);
-      if (cData) setContacts(cData);
-      if (acData) setAccounts(acData);
-      if (pData) setProfessionals(pData);
-      if (invData) setInvoices(invData);
-      
-    } catch (error) {
-      console.error("Falha crítica ao carregar dados do Supabase:", error);
-    }
+    // Carregar entidades em paralelo (Fault Tolerant)
+    await Promise.all([
+        loadTable('items', setItems),
+        loadTable('transactions', setTransactions),
+        loadTable('appointments', setAppointments),
+        loadTable('contacts', setContacts),
+        loadTable('accounts', setAccounts),
+        loadTable('professionals', setProfessionals),
+        loadTable('invoices', setInvoices)
+    ]);
   }, []);
 
   useEffect(() => {
     let mounted = true;
     let authInitialized = false;
 
+    // Timeout de segurança para não travar no loading
     const timeoutId = setTimeout(() => {
       if (!authInitialized && mounted) {
         console.warn("Auth initialization timed out after 5s.");
@@ -184,9 +173,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          throw sessionError;
-        }
+        if (sessionError) throw sessionError;
 
         if (session?.user && mounted) {
           const newUser = {
@@ -215,31 +202,25 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user && mounted) {
-        const newUser = {
-          email: session.user.email!,
-          companyId: session.user.id,
-          name: session.user.user_metadata?.name || 'Usuário',
-          uid: session.user.id
-        };
-        setUser(newUser);
-        await fetchData(session.user.id);
-        setIsLoading(false);
-      } else if (event === 'SIGNED_OUT' && mounted) {
-        setUser(null);
-        clearData();
-        setIsLoading(false);
-      } else if (event === 'TOKEN_REFRESHED' && session?.user && mounted) {
-        if (!user) {
-             const newUser = {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user && mounted) {
+         // Só atualiza se o usuário mudou ou estava nulo
+         setUser(prev => {
+             if (prev?.uid === session.user.id) return prev;
+             return {
                 email: session.user.email!,
                 companyId: session.user.id,
                 name: session.user.user_metadata?.name || 'Usuário',
                 uid: session.user.id
-            };
-            setUser(newUser);
-            await fetchData(session.user.id);
-        }
+             };
+         });
+         
+         if (event === 'SIGNED_IN') {
+             await fetchData(session.user.id);
+         }
+      } else if (event === 'SIGNED_OUT' && mounted) {
+        setUser(null);
+        clearData();
+        setIsLoading(false);
       }
     });
 
@@ -259,6 +240,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         uid: 'test-user-id'
       };
       setUser(testUser);
+      // Seed Data Mock
       setItems([
         { id: '1', name: 'Consultoria Empresarial', type: 'SERVICE', price: 1500, cost: 0, stock: 0, minStock: 0, unit: 'SV', desiredMargin: 100 },
         { id: '2', name: 'Licença de Software', type: 'PRODUCT', price: 250, cost: 100, stock: 50, minStock: 10, unit: 'UN', desiredMargin: 60 }
@@ -268,14 +250,32 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      
       if (error) {
         console.error('Login Failed:', error.message);
+        setIsLoading(false);
         return false;
       }
-      return !!data.user;
+
+      if (data.user) {
+          const newUser = {
+              email: data.user.email!,
+              companyId: data.user.id,
+              name: data.user.user_metadata?.name || 'Usuário',
+              uid: data.user.id
+          };
+          setUser(newUser);
+          await fetchData(data.user.id);
+          setIsLoading(false);
+          return true;
+      }
+      return false;
+
     } catch (e: any) {
       console.error("Login Error (Network/Config):", e);
+      setIsLoading(false);
       return false;
     }
   };
@@ -292,41 +292,31 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setUser(null);
       clearData();
       setIsLoading(false);
-      // Opcional: Recarregar a página para limpar qualquer cache residual
-      // window.location.href = window.location.origin;
     }
   };
 
+  // --- CRUD HELPERS (With simple error logging) ---
+
   const insertDB = async (table: string, data: any) => {
     if (!user || user.uid === 'test-user-id') return;
-    try {
-      const payload = { ...data, id: data.id.toString(), user_id: user.uid };
-      const { error } = await supabase.from(table).insert(payload);
-      if (error) throw error;
-    } catch (error) {
-      console.error(`Erro ao inserir em ${table} (RLS/DB):`, error);
-    }
+    const payload = { ...data, id: data.id.toString(), user_id: user.uid };
+    const { error } = await supabase.from(table).insert(payload);
+    if (error) console.error(`Insert ${table} error:`, error);
   };
 
   const updateDB = async (table: string, id: string, data: any) => {
     if (!user || user.uid === 'test-user-id') return;
-    try {
-      const { error } = await supabase.from(table).update(data).eq('id', id.toString()).eq('user_id', user.uid);
-      if (error) throw error;
-    } catch (error) {
-      console.error(`Erro ao atualizar em ${table} (RLS/DB):`, error);
-    }
+    const { error } = await supabase.from(table).update(data).eq('id', id.toString()).eq('user_id', user.uid);
+    if (error) console.error(`Update ${table} error:`, error);
   };
 
   const deleteDB = async (table: string, id: string) => {
     if (!user || user.uid === 'test-user-id') return;
-    try {
-      const { error } = await supabase.from(table).delete().eq('id', id.toString()).eq('user_id', user.uid);
-      if (error) throw error;
-    } catch (error) {
-      console.error(`Erro ao deletar em ${table} (RLS/DB):`, error);
-    }
+    const { error } = await supabase.from(table).delete().eq('id', id.toString()).eq('user_id', user.uid);
+    if (error) console.error(`Delete ${table} error:`, error);
   };
+
+  // --- ENTITY ACTIONS ---
 
   const addItem = (item: Item) => {
     setItems(prev => [...prev, item]);
@@ -482,12 +472,9 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const updateSettings = async (s: AppSettings) => {
     setSettings(s);
     if (!user || user.uid === 'test-user-id') return;
-    try {
-      const { error } = await supabase.from('settings').upsert({ user_id: user.uid, data: s }, { onConflict: 'user_id' });
-      if (error) throw error;
-    } catch (error) {
-      console.error("Erro ao salvar configurações no Supabase:", error);
-    }
+    // Usando upsert para garantir
+    const { error } = await supabase.from('settings').upsert({ user_id: user.uid, data: s }, { onConflict: 'user_id' });
+    if (error) console.error("Error updating settings:", error);
   };
 
   const verifyPin = (pin: string) => pin === settings.adminPin;
