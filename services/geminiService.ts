@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Item, Transaction, Appointment, Account } from "../types";
 
@@ -62,7 +61,6 @@ export const generateAIResponse = async (query: string, data: ContextData): Prom
       }
     });
     
-    // Process grounding chunks if available (to extract URLs nicely if needed, but text is usually sufficient)
     return response.text || "Não consegui analisar os dados no ecossistema Sozio no momento.";
   } catch (error) {
     console.error("Gemini Error:", error);

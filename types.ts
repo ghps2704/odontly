@@ -112,6 +112,10 @@ export interface Transaction {
   recurrence?: RecurrenceConfig;
   installments?: { current: number; total: number };
   attachments?: Attachment[];
+
+  // --- FP&A INTELLIGENCE FLAGS (RF022) ---
+  impactFiscal?: boolean;    // Affects official fiscal reports
+  impactGerencial?: boolean; // Affects management reports (DRE)
 }
 
 export interface Account {
@@ -233,6 +237,9 @@ export interface AppSettings {
     b: number; 
     c: number; 
   };
+
+  // --- CUSTOMIZATION ---
+  customCategories?: FinancialCategory[];
 }
 
 export type ViewState = 'DASHBOARD' | 'CATALOG' | 'CONTACTS' | 'CALENDAR' | 'FISCAL' | 'FINANCE' | 'SETTINGS';
