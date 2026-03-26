@@ -322,7 +322,7 @@ const Calendar: React.FC = () => {
     'SCHEDULED': 'bg-blue-100 text-blue-700 border-blue-200',
     'IN_PROGRESS': 'bg-yellow-100 text-yellow-700 border-yellow-200',
     'COMPLETED': 'bg-green-100 text-green-700 border-green-200',
-    'CANCELLED': 'bg-slate-100 text-slate-500 border-slate-200',
+    'CANCELLED': 'bg-[#f0f9ff] text-[#64748b] border-[#e0f2fe]',
   };
 
   const sortedAppointments = [...appointments].sort((a, b) => 
@@ -333,13 +333,13 @@ const Calendar: React.FC = () => {
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Agenda Operacional</h2>
-          <p className="text-slate-500">Controle atendimentos e baixa automática de estoque.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Agenda Operacional</h2>
+          <p className="text-[#64748b]">Controle atendimentos e baixa automática de estoque.</p>
         </div>
         <div className="flex gap-3">
              <button 
                 onClick={() => setIsProfModalOpen(true)}
-                className="bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-slate-50 transition-colors"
+                className="bg-white border border-[#e0f2fe] text-[#64748b] px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[#f0f9ff] transition-colors"
             >
                 <UserCog size={18} />
                 <span>Profissionais</span>
@@ -358,7 +358,7 @@ const Calendar: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-3 space-y-4">
             {sortedAppointments.length === 0 && (
-                <div className="bg-white p-12 rounded-xl text-center text-slate-400 border border-slate-100 border-dashed">
+                <div className="bg-white p-12 rounded-xl text-center text-[#64748b] border border-[#e0f2fe] border-dashed">
                     <CalendarIcon size={48} className="mx-auto mb-4 opacity-50" />
                     <p>Nenhum agendamento encontrado.</p>
                 </div>
@@ -377,40 +377,40 @@ const Calendar: React.FC = () => {
                 const hasDiscount = appt.finalAmount !== undefined && appt.finalAmount < rawTotal;
 
                 return (
-                    <div key={appt.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start gap-4">
+                    <div key={appt.id} className="bg-white p-4 rounded-xl shadow-sm border border-[#e0f2fe] flex flex-col md:flex-row justify-between items-start gap-4">
                         <div className="flex items-start gap-4 flex-1">
-                            <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-lg border shrink-0 ${!hasServices && hasProducts ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
-                                {!hasServices && hasProducts ? <ShoppingBag size={24} className="text-indigo-400" /> : (
+                            <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-lg border shrink-0 ${!hasServices && hasProducts ? 'bg-[#e0f2fe] border-[#e0f2fe]' : 'bg-[#f0f9ff] border-[#e0f2fe]'}`}>
+                                {!hasServices && hasProducts ? <ShoppingBag size={24} className="text-[#0284c7]" /> : (
                                     <>
-                                        <span className="text-xs font-bold text-slate-500">{new Date(appt.date).getDate()}</span>
-                                        <span className="text-xs text-slate-400 uppercase">{new Date(appt.date).toLocaleString('default', { month: 'short' })}</span>
-                                        <span className="text-sm font-bold text-slate-700 mt-1">{appt.startTime}</span>
+                                        <span className="text-xs font-bold text-[#64748b]">{new Date(appt.date).getDate()}</span>
+                                        <span className="text-xs text-[#64748b] uppercase">{new Date(appt.date).toLocaleString('default', { month: 'short' })}</span>
+                                        <span className="text-sm font-bold text-[#0a0f1e] mt-1">{appt.startTime}</span>
                                     </>
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-bold text-slate-800">{appt.clientName}</h3>
-                                <div className="flex flex-col text-sm text-slate-500">
+                                <h3 className="font-bold text-[#0a0f1e]">{appt.clientName}</h3>
+                                <div className="flex flex-col text-sm text-[#64748b]">
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
                                         {/* Show First Item Name */}
-                                        <span className="font-medium text-slate-700">{firstItem?.name || 'Venda Diversa'}</span>
+                                        <span className="font-medium text-[#0a0f1e]">{firstItem?.name || 'Venda Diversa'}</span>
                                         
                                         {/* Badges for Multi-item */}
                                         {totalItems > 1 && (
-                                            <span className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-bold border border-slate-200">
+                                            <span className="bg-[#f0f9ff] text-[#64748b] text-[10px] px-1.5 py-0.5 rounded font-bold border border-[#e0f2fe]">
                                                 +{totalItems - 1} itens
                                             </span>
                                         )}
-                                        {hasProducts && <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100">Produto</span>}
-                                        {hasServices && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-100">Serviço</span>}
+                                        {hasProducts && <span className="text-[10px] px-1.5 py-0.5 bg-[#e0f2fe] text-[#0369a1] rounded border border-[#e0f2fe]">Produto</span>}
+                                        {hasServices && <span className="text-[10px] px-1.5 py-0.5 bg-[#e0f2fe] text-[#0284c7] rounded border border-[#e0f2fe]">Serviço</span>}
                                     </div>
-                                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                                    <span className="text-xs text-[#64748b] flex items-center gap-1">
                                         <User size={12} /> {professional?.name || 'Profissional N/D'}
                                     </span>
                                 </div>
                                 {appt.notes && (
-                                    <div className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 flex gap-2 items-start">
-                                        <FileText size={14} className="mt-0.5 shrink-0 text-slate-400" />
+                                    <div className="mt-2 text-xs text-[#64748b] bg-[#f0f9ff] p-2 rounded border border-[#e0f2fe] flex gap-2 items-start">
+                                        <FileText size={14} className="mt-0.5 shrink-0 text-[#64748b]" />
                                         <span className="italic">{appt.notes}</span>
                                     </div>
                                 )}
@@ -419,12 +419,12 @@ const Calendar: React.FC = () => {
 
                         <div className="flex items-center gap-4">
                              <div className="text-right mr-4 hidden md:block">
-                                 <div className="text-xs text-slate-400">Total {hasDiscount ? '(Liq.)' : ''}</div>
-                                 <div className={`font-bold ${hasDiscount ? 'text-green-600' : 'text-slate-700'}`}>
+                                 <div className="text-xs text-[#64748b]">Total {hasDiscount ? '(Liq.)' : ''}</div>
+                                 <div className={`font-bold ${hasDiscount ? 'text-green-600' : 'text-[#0a0f1e]'}`}>
                                      R$ {displayTotal.toFixed(2)}
                                  </div>
                                  {appt.npsScore && (
-                                     <div className="text-[10px] text-amber-500 font-bold flex items-center justify-end gap-1 mt-1">
+                                     <div className="text-[10px] text-[#0284c7] font-bold flex items-center justify-end gap-1 mt-1">
                                          <Star size={10} fill="currentColor" /> NPS: {appt.npsScore}
                                      </div>
                                  )}
@@ -466,9 +466,9 @@ const Calendar: React.FC = () => {
        {isApptModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-visible max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
               <h3 className="text-xl font-bold">Novo Agendamento / Venda</h3>
-              <button onClick={closeApptModal}><XCircle size={24} className="text-slate-400" /></button>
+              <button onClick={closeApptModal}><XCircle size={24} className="text-[#64748b]" /></button>
             </div>
             
             <div className="p-6 space-y-4">
@@ -485,12 +485,12 @@ const Calendar: React.FC = () => {
                 {/* Top Row: Client & Professional */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="relative" ref={dropdownRef}>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Cliente</label>
                         <div className="relative">
                             <input 
                                 type="text"
                                 placeholder="Buscar Cliente..."
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-10 pr-4 py-2 border border-[#e0f2fe] rounded-lg bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
                                 value={clientSearchTerm}
                                 onChange={(e) => {
                                     setClientSearchTerm(e.target.value);
@@ -500,24 +500,24 @@ const Calendar: React.FC = () => {
                                 }}
                                 onFocus={() => setShowClientList(true)}
                             />
-                            <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
+                            <Search className="absolute left-3 top-2.5 text-[#64748b]" size={18} />
                         </div>
 
                         {showClientList && clientSearchTerm && (
-                            <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                            <div className="absolute z-50 w-full mt-1 bg-white border border-[#e0f2fe] rounded-lg shadow-xl max-h-48 overflow-y-auto">
                                 {filteredContacts.length > 0 ? (
                                     filteredContacts.map(contact => (
                                         <button
                                             key={contact.id}
-                                            className="w-full text-left px-4 py-2 hover:bg-slate-50 flex flex-col border-b border-slate-50 last:border-0"
+                                            className="w-full text-left px-4 py-2 hover:bg-[#f0f9ff] flex flex-col border-b border-[#e0f2fe] last:border-0"
                                             onClick={() => handleSelectClient(contact)}
                                         >
-                                            <span className="font-medium text-slate-800">{contact.name}</span>
-                                            <span className="text-xs text-slate-500">Doc: {contact.document}</span>
+                                            <span className="font-medium text-[#0a0f1e]">{contact.name}</span>
+                                            <span className="text-xs text-[#64748b]">Doc: {contact.document}</span>
                                         </button>
                                     ))
                                 ) : (
-                                    <div className="px-4 py-2 text-sm text-slate-400">Nenhum cliente encontrado.</div>
+                                    <div className="px-4 py-2 text-sm text-[#64748b]">Nenhum cliente encontrado.</div>
                                 )}
                             </div>
                         )}
@@ -528,14 +528,14 @@ const Calendar: React.FC = () => {
                         )}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Profissional / Vendedor</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Profissional / Vendedor</label>
                         <select 
                         value={newAppt.professionalId || ''} 
                         onChange={e => {
                             setNewAppt({...newAppt, professionalId: e.target.value});
                             setConflictError(null);
                         }}
-                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                         >
                             <option value="">Selecione...</option>
                             {professionals.map(p => (
@@ -546,14 +546,14 @@ const Calendar: React.FC = () => {
                 </div>
                 
                 {/* Unified Items Section */}
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                <div className="bg-[#f0f9ff] p-4 rounded-lg border border-[#e0f2fe]">
+                    <label className="block text-sm font-bold text-[#0a0f1e] mb-3 flex items-center gap-2">
                         <Box size={16} /> Itens da Venda / Serviço
                     </label>
                     
                     <div className="flex gap-2 mb-3">
                         <select 
-                            className="flex-1 text-sm border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="flex-1 text-sm border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                             value={selectedItemId}
                             onChange={(e) => setSelectedItemId(e.target.value)}
                         >
@@ -572,7 +572,7 @@ const Calendar: React.FC = () => {
                         <input 
                             type="number" 
                             min="1"
-                            className="w-20 text-sm border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="w-20 text-sm border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                             value={selectedItemQty}
                             onChange={e => setSelectedItemQty(parseInt(e.target.value) || 1)}
                         />
@@ -584,15 +584,15 @@ const Calendar: React.FC = () => {
                     {/* Items List */}
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                         {(!newAppt.items || newAppt.items.length === 0) ? (
-                            <p className="text-center text-sm text-slate-400 py-2 italic">Nenhum item adicionado.</p>
+                            <p className="text-center text-sm text-[#64748b] py-2 italic">Nenhum item adicionado.</p>
                         ) : (
                             newAppt.items.map((item, idx) => {
                                 const def = items.find(i => i.id === item.itemId);
                                 return (
-                                    <div key={idx} className="flex justify-between items-center text-sm bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                    <div key={idx} className="flex justify-between items-center text-sm bg-white p-3 rounded-lg border border-[#e0f2fe] shadow-sm">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-slate-800">{def?.name}</span>
-                                            <span className="text-[10px] text-slate-500 uppercase">{def?.type === 'SERVICE' ? 'Serviço' : 'Produto'}</span>
+                                            <span className="font-medium text-[#0a0f1e]">{def?.name}</span>
+                                            <span className="text-[10px] text-[#64748b] uppercase">{def?.type === 'SERVICE' ? 'Serviço' : 'Produto'}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span>{item.quantity} x R$ {item.unitPrice.toFixed(2)}</span>
@@ -605,15 +605,15 @@ const Calendar: React.FC = () => {
                         )}
                     </div>
                     {newAppt.items && newAppt.items.length > 0 && (
-                        <div className="flex justify-end pt-2 border-t border-slate-200 mt-2">
-                            <span className="text-sm font-bold text-slate-700">Total: R$ {newAppt.items.reduce((a, b) => a + (b.unitPrice * b.quantity), 0).toFixed(2)}</span>
+                        <div className="flex justify-end pt-2 border-t border-[#e0f2fe] mt-2">
+                            <span className="text-sm font-bold text-[#0a0f1e]">Total: R$ {newAppt.items.reduce((a, b) => a + (b.unitPrice * b.quantity), 0).toFixed(2)}</span>
                         </div>
                     )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Data</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Data</label>
                         <input 
                             type="date" 
                             value={newAppt.date} 
@@ -621,11 +621,11 @@ const Calendar: React.FC = () => {
                                 setNewAppt({...newAppt, date: e.target.value});
                                 setConflictError(null);
                             }}
-                            className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Hora</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Hora</label>
                         <input 
                             type="time" 
                             value={newAppt.startTime} 
@@ -633,29 +633,29 @@ const Calendar: React.FC = () => {
                                 setNewAppt({...newAppt, startTime: e.target.value});
                                 setConflictError(null);
                             }}
-                            className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Observações (Opcional)</label>
+                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Observações (Opcional)</label>
                     <textarea 
                         rows={2}
                         placeholder="Detalhes adicionais..."
                         value={newAppt.notes || ''}
                         onChange={e => setNewAppt({...newAppt, notes: e.target.value})}
-                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 text-sm"
+                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
                     />
                 </div>
             </div>
 
-            <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-              <button onClick={closeApptModal} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+            <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+              <button onClick={closeApptModal} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
               <button 
                 onClick={handleSaveAppt} 
                 disabled={!newAppt.clientId || !newAppt.items || newAppt.items.length === 0 || !newAppt.professionalId || !!conflictError}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-[#e0f2fe] disabled:cursor-not-allowed"
                 style={{ backgroundColor: (newAppt.clientId && newAppt.items?.length && newAppt.professionalId && !conflictError) ? settings.primaryColor : undefined }}
               >
                 Agendar / Vender
@@ -678,11 +678,11 @@ const Calendar: React.FC = () => {
                  
                  <div className="p-6 space-y-6">
                      {/* RF032 - NPS Section */}
-                     <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 text-center">
-                         <label className="block text-sm font-bold text-amber-800 mb-2 flex items-center justify-center gap-2">
+                     <div className="bg-[#e0f2fe] p-4 rounded-lg border border-[#e0f2fe] text-center">
+                         <label className="block text-sm font-bold text-[#0284c7] mb-2 flex items-center justify-center gap-2">
                              <ThumbsUp size={16} /> Pesquisa de Satisfação (NPS)
                          </label>
-                         <p className="text-xs text-amber-600 mb-3">De 0 a 10, qual a nota do cliente?</p>
+                         <p className="text-xs text-[#0369a1] mb-3">De 0 a 10, qual a nota do cliente?</p>
                          <div className="flex justify-center gap-1">
                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(score => (
                                  <button
@@ -690,8 +690,8 @@ const Calendar: React.FC = () => {
                                      onClick={() => setNpsScore(score)}
                                      className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
                                          npsScore === score 
-                                            ? 'bg-amber-500 text-white scale-110 shadow-lg' 
-                                            : 'bg-white border border-amber-200 text-amber-600 hover:bg-amber-100'
+                                            ? 'bg-[#0284c7] text-white scale-110 shadow-lg' 
+                                            : 'bg-white border border-[#e0f2fe] text-[#0284c7] hover:bg-[#e0f2fe]'
                                      }`}
                                  >
                                      {score}
@@ -704,19 +704,19 @@ const Calendar: React.FC = () => {
                      {/* Only show BOM adjustments if there are services involved */}
                      {completingAppt.items && completingAppt.items.some(i => items.find(k => k.id === i.itemId)?.type === 'SERVICE') && (
                          <div>
-                             <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                 <AlertTriangle size={16} className="text-amber-500" /> Materiais Consumidos (Serviços)
+                             <h4 className="font-bold text-[#0a0f1e] mb-2 flex items-center gap-2">
+                                 <AlertTriangle size={16} className="text-[#0284c7]" /> Materiais Consumidos (Serviços)
                              </h4>
                              <div className="space-y-2 mb-4">
                                  {completionBOM.map((bomItem, idx) => {
                                      const itemDef = items.find(i => i.id === bomItem.itemId);
                                      return (
-                                         <div key={idx} className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg">
-                                             <span className="text-sm text-slate-700 font-medium truncate flex-1">{itemDef?.name || 'Item Removido'}</span>
+                                         <div key={idx} className="flex items-center justify-between p-2 bg-white border border-[#e0f2fe] rounded-lg">
+                                             <span className="text-sm text-[#0a0f1e] font-medium truncate flex-1">{itemDef?.name || 'Item Removido'}</span>
                                              <div className="flex items-center gap-2">
                                                  <input 
                                                     type="number"
-                                                    className="w-16 p-1 border border-slate-300 rounded text-center text-sm"
+                                                    className="w-16 p-1 border border-[#e0f2fe] rounded text-center text-sm"
                                                     value={bomItem.quantity}
                                                     onChange={(e) => {
                                                         const val = parseFloat(e.target.value);
@@ -725,7 +725,7 @@ const Calendar: React.FC = () => {
                                                         setCompletionBOM(newBOM);
                                                     }}
                                                  />
-                                                 <span className="text-xs text-slate-400 w-8">{itemDef?.unit}</span>
+                                                 <span className="text-xs text-[#64748b] w-8">{itemDef?.unit}</span>
                                                  <button 
                                                     onClick={() => setCompletionBOM(completionBOM.filter((_, i) => i !== idx))}
                                                     className="text-red-400 hover:text-red-600 p-1"
@@ -740,14 +740,14 @@ const Calendar: React.FC = () => {
                                      <select 
                                         value={newMaterialId}
                                         onChange={(e) => setNewMaterialId(e.target.value)}
-                                        className="flex-1 p-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-900"
+                                        className="flex-1 p-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e]"
                                      >
                                          <option value="">Adicionar Material Extra...</option>
                                          {items.filter(i => i.type !== 'SERVICE').map(i => (
                                              <option key={i.id} value={i.id}>{i.name} ({i.stock} {i.unit})</option>
                                          ))}
                                      </select>
-                                     <button onClick={handleAddMaterialToCompletion} disabled={!newMaterialId} className="bg-slate-200 text-slate-700 px-3 py-2 rounded-lg font-bold hover:bg-slate-300 disabled:opacity-50"><Plus size={18}/></button>
+                                     <button onClick={handleAddMaterialToCompletion} disabled={!newMaterialId} className="bg-[#e0f2fe] text-[#0a0f1e] px-3 py-2 rounded-lg font-bold hover:bg-[#e0f2fe] disabled:opacity-50"><Plus size={18}/></button>
                                  </div>
                              </div>
                          </div>
@@ -774,13 +774,13 @@ const Calendar: React.FC = () => {
                                      <div className="flex border border-blue-200 rounded overflow-hidden bg-white shrink-0">
                                          <button 
                                             onClick={() => setDiscountType('FIXED')}
-                                            className={`px-3 py-1 text-xs font-bold ${discountType === 'FIXED' ? 'bg-blue-100 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+                                            className={`px-3 py-1 text-xs font-bold ${discountType === 'FIXED' ? 'bg-blue-100 text-blue-700' : 'text-[#64748b] hover:bg-[#f0f9ff]'}`}
                                          >
                                              R$
                                          </button>
                                          <button 
                                             onClick={() => setDiscountType('PERCENTAGE')}
-                                            className={`px-3 py-1 text-xs font-bold border-l border-blue-100 ${discountType === 'PERCENTAGE' ? 'bg-blue-100 text-blue-700' : 'text-slate-500 hover:bg-slate-50'}`}
+                                            className={`px-3 py-1 text-xs font-bold border-l border-blue-100 ${discountType === 'PERCENTAGE' ? 'bg-blue-100 text-blue-700' : 'text-[#64748b] hover:bg-[#f0f9ff]'}`}
                                          >
                                              %
                                          </button>
@@ -881,8 +881,8 @@ const Calendar: React.FC = () => {
                      </div>
                  </div>
 
-                 <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-                     <button onClick={() => setIsCompletionModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                 <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+                     <button onClick={() => setIsCompletionModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
                      <button onClick={handleConfirmCompletion} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow-lg shadow-green-500/20">Confirmar Tudo</button>
                  </div>
              </div>
@@ -893,52 +893,52 @@ const Calendar: React.FC = () => {
       {isProfModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
-                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                  <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
                       <h3 className="text-xl font-bold">Gerenciar Profissionais</h3>
-                      <button onClick={() => setIsProfModalOpen(false)}><XCircle size={24} className="text-slate-400" /></button>
+                      <button onClick={() => setIsProfModalOpen(false)}><XCircle size={24} className="text-[#64748b]" /></button>
                   </div>
                   <div className="p-6">
-                      <div className="space-y-4 mb-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                          <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2">
+                      <div className="space-y-4 mb-6 p-4 bg-[#f0f9ff] rounded-lg border border-[#e0f2fe]">
+                          <h4 className="font-bold text-[#0a0f1e] text-sm flex items-center gap-2">
                               <Briefcase size={16} /> Adicionar Novo Profissional
                           </h4>
                           <div className="grid grid-cols-2 gap-3">
                               <input 
                                   type="text" 
                                   placeholder="Nome"
-                                  className="p-2 border border-slate-300 rounded-lg bg-white text-slate-900 text-sm"
+                                  className="p-2 border border-[#e0f2fe] rounded-lg bg-white text-[#0a0f1e] text-sm"
                                   value={newProfName}
                                   onChange={e => setNewProfName(e.target.value)}
                               />
                               <input 
                                   type="text" 
                                   placeholder="Cargo/Espec."
-                                  className="p-2 border border-slate-300 rounded-lg bg-white text-slate-900 text-sm"
+                                  className="p-2 border border-[#e0f2fe] rounded-lg bg-white text-[#0a0f1e] text-sm"
                                   value={newProfRole}
                                   onChange={e => setNewProfRole(e.target.value)}
                               />
                           </div>
                           
                           {/* Availability Config */}
-                          <div className="bg-white p-3 rounded border border-slate-200">
-                              <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide">Jornada de Trabalho (Padrão)</label>
+                          <div className="bg-white p-3 rounded border border-[#e0f2fe]">
+                              <label className="block text-xs font-bold text-[#64748b] mb-2 uppercase tracking-wide">Jornada de Trabalho (Padrão)</label>
                               
                               <div className="flex gap-2 items-center mb-3">
                                   <div className="flex-1">
-                                      <span className="text-xs text-slate-400 block mb-1">Início</span>
+                                      <span className="text-xs text-[#64748b] block mb-1">Início</span>
                                       <input 
                                           type="time" 
-                                          className="w-full p-1 border border-slate-300 rounded text-sm text-center"
+                                          className="w-full p-1 border border-[#e0f2fe] rounded text-sm text-center"
                                           value={newProfStart}
                                           onChange={e => setNewProfStart(e.target.value)}
                                       />
                                   </div>
-                                  <span className="text-slate-400 mt-4">-</span>
+                                  <span className="text-[#64748b] mt-4">-</span>
                                   <div className="flex-1">
-                                      <span className="text-xs text-slate-400 block mb-1">Fim</span>
+                                      <span className="text-xs text-[#64748b] block mb-1">Fim</span>
                                       <input 
                                           type="time" 
-                                          className="w-full p-1 border border-slate-300 rounded text-sm text-center"
+                                          className="w-full p-1 border border-[#e0f2fe] rounded text-sm text-center"
                                           value={newProfEnd}
                                           onChange={e => setNewProfEnd(e.target.value)}
                                       />
@@ -946,7 +946,7 @@ const Calendar: React.FC = () => {
                               </div>
 
                               <div>
-                                  <span className="text-xs text-slate-400 block mb-2">Dias de Atendimento</span>
+                                  <span className="text-xs text-[#64748b] block mb-2">Dias de Atendimento</span>
                                   <div className="flex justify-between gap-1">
                                       {DAYS_OF_WEEK.map((day) => {
                                           const isSelected = newProfDays.includes(day.id);
@@ -957,7 +957,7 @@ const Calendar: React.FC = () => {
                                                   className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
                                                       isSelected 
                                                         ? 'bg-blue-600 text-white shadow-md' 
-                                                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                                                        : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'
                                                   }`}
                                                   title={day.name}
                                               >
@@ -971,7 +971,7 @@ const Calendar: React.FC = () => {
 
                           <button 
                               onClick={handleAddProfessional}
-                              className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/20 disabled:bg-slate-300 disabled:shadow-none"
+                              className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 font-bold shadow-lg shadow-blue-500/20 disabled:bg-[#e0f2fe] disabled:shadow-none"
                               disabled={!newProfName}
                           >
                               Cadastrar Profissional
@@ -979,22 +979,22 @@ const Calendar: React.FC = () => {
                       </div>
 
                       <div className="space-y-2 max-h-60 overflow-y-auto">
-                          <h4 className="font-bold text-slate-700 text-sm mb-2">Equipe Cadastrada</h4>
+                          <h4 className="font-bold text-[#0a0f1e] text-sm mb-2">Equipe Cadastrada</h4>
                           {professionals.map(prof => (
-                              <div key={prof.id} className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+                              <div key={prof.id} className="flex justify-between items-center p-3 bg-white rounded-lg border border-[#e0f2fe] shadow-sm">
                                   <div>
-                                      <p className="font-bold text-slate-800">{prof.name}</p>
-                                      <p className="text-xs text-slate-500">{prof.role}</p>
+                                      <p className="font-bold text-[#0a0f1e]">{prof.name}</p>
+                                      <p className="text-xs text-[#64748b]">{prof.role}</p>
                                       {prof.availability && (
                                           <div className="mt-1 flex flex-col gap-0.5">
-                                              <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                                              <p className="text-[10px] text-[#64748b] flex items-center gap-1">
                                                   <Clock size={10} /> {prof.availability.start} - {prof.availability.end}
                                               </p>
                                               <div className="flex gap-0.5">
                                                   {DAYS_OF_WEEK.map(d => (
                                                       <div 
                                                         key={d.id} 
-                                                        className={`w-1.5 h-1.5 rounded-full ${prof.availability?.workDays.includes(d.id) ? 'bg-green-400' : 'bg-slate-200'}`}
+                                                        className={`w-1.5 h-1.5 rounded-full ${prof.availability?.workDays.includes(d.id) ? 'bg-green-400' : 'bg-[#e0f2fe]'}`}
                                                         title={d.name}
                                                       />
                                                   ))}
@@ -1007,7 +1007,7 @@ const Calendar: React.FC = () => {
                                   </button>
                               </div>
                           ))}
-                          {professionals.length === 0 && <p className="text-center text-slate-400 py-4 text-sm">Nenhum profissional cadastrado.</p>}
+                          {professionals.length === 0 && <p className="text-center text-[#64748b] py-4 text-sm">Nenhum profissional cadastrado.</p>}
                       </div>
                   </div>
               </div>

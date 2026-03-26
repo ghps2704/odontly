@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNexus } from '../store/NexusContext';
-import { Hexagon, Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import Logo from './ui/logo';
 
 const Login: React.FC = () => {
   const { login } = useNexus();
@@ -14,76 +15,123 @@ const Login: React.FC = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-
     try {
       const success = await login(email, password);
-      if (!success) {
-        setError('Acesso negado. Verifique seu e-mail e senha.');
-      }
-    } catch (err) {
+      if (!success) setError('Acesso negado. Verifique seu e-mail e senha.');
+    } catch {
       setError('Erro de conexão. Verifique sua internet.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[120px]" />
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '9px 14px 9px 38px',
+    border: '1.5px solid #e0f2fe',
+    borderRadius: 8,
+    fontSize: 13,
+    color: '#0a0f1e',
+    background: '#ffffff',
+    outline: 'none',
+    fontFamily: 'Inter, sans-serif',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  };
 
-      <div className="bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl z-10 mx-4">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl shadow-lg">
-              <Hexagon size={32} className="text-white fill-white" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            So<span className="text-amber-500 italic">z</span>io ERP
-          </h1>
-          <p className="text-slate-500 text-sm mt-2">Acesso Seguro</p>
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: 13,
+    fontWeight: 500,
+    color: '#0a0f1e',
+    marginBottom: 6,
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#f0f9ff',
+      padding: 16,
+      fontFamily: 'Inter, sans-serif',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      {/* Background blobs */}
+      <div style={{
+        position: 'absolute', top: '-8%', left: '-8%',
+        width: '38%', height: '38%',
+        background: 'rgba(2,132,199,0.1)', borderRadius: '50%', filter: 'blur(80px)',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: '-8%', right: '-8%',
+        width: '38%', height: '38%',
+        background: 'rgba(14,165,233,0.08)', borderRadius: '50%', filter: 'blur(80px)',
+      }} />
+
+      <div style={{
+        background: '#ffffff',
+        width: '100%',
+        maxWidth: 400,
+        padding: 36,
+        borderRadius: 14,
+        border: '0.5px solid #e0f2fe',
+        boxShadow: '0 8px 40px rgba(10,15,30,0.08)',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+          <Logo size="lg" variant="light" />
+          <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>
+            Feito para dentistas
+          </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3 animate-pulse">
-            <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
-            <p className="text-sm text-red-600 font-medium">{error}</p>
+          <div style={{
+            marginBottom: 20, padding: '12px 14px',
+            background: '#fee2e2', border: '0.5px solid #fca5a5',
+            borderRadius: 8, display: 'flex', alignItems: 'flex-start', gap: 10,
+          }}>
+            <AlertCircle style={{ color: '#991b1b', flexShrink: 0, marginTop: 1 }} size={16} />
+            <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 500 }}>{error}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">E-mail</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-400" />
-              </div>
+            <label style={labelStyle}>E-mail</label>
+            <div style={{ position: 'relative' }}>
+              <Mail style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} size={15} />
               <input
                 type="email"
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
+                style={inputStyle}
                 placeholder="seu@email.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
+                onFocus={e => { e.target.style.borderColor = '#0284c7'; e.target.style.boxShadow = '0 0 0 3px rgba(2,132,199,0.25)'; }}
+                onBlur={e => { e.target.style.borderColor = '#e0f2fe'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Senha</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-400" />
-              </div>
+            <label style={labelStyle}>Senha</label>
+            <div style={{ position: 'relative' }}>
+              <Lock style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} size={15} />
               <input
                 type="password"
                 required
-                className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
+                style={inputStyle}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
+                onFocus={e => { e.target.style.borderColor = '#0284c7'; e.target.style.boxShadow = '0 0 0 3px rgba(2,132,199,0.25)'; }}
+                onBlur={e => { e.target.style.borderColor = '#e0f2fe'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
           </div>
@@ -91,25 +139,44 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{
+              width: '100%',
+              padding: '10px 20px',
+              background: isLoading ? '#7dd3fc' : '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              fontFamily: 'Inter, sans-serif',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'background 0.15s',
+              marginTop: 4,
+            }}
+            onMouseEnter={e => { if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = '#0369a1'; }}
+            onMouseLeave={e => { if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = '#0284c7'; }}
           >
             {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={18} className="animate-spin" /> Autenticando...
-              </span>
-            ) : (
-              'Entrar'
-            )}
+              <>
+                <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
+                Autenticando...
+              </>
+            ) : 'Entrar'}
           </button>
         </form>
 
-        <div className="mt-6 text-center border-t border-slate-100 pt-4">
-          <p className="text-xs text-slate-400">
-            Esqueceu sua senha ou precisa de acesso? <br/>
-            Contate o administrador do sistema.
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '0.5px solid #e0f2fe', textAlign: 'center' }}>
+          <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
+            Suporte em minutos — fale com o administrador da clínica.
           </p>
         </div>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };

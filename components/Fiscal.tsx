@@ -69,40 +69,40 @@ const Fiscal: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-           <h2 className="text-2xl font-bold text-slate-800">Painel de Controle Fiscal</h2>
-           <p className="text-slate-500">Auditoria, Controle de Metas e Preparação para Faturamento.</p>
+           <h2 className="text-2xl font-bold text-[#0a0f1e]">Painel de Controle Fiscal</h2>
+           <p className="text-[#64748b]">Auditoria, Controle de Metas e Preparação para Faturamento.</p>
         </div>
       </div>
 
       {/* --- KPI DASHBOARD --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* 1. THERMOMETER (GOAL) */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 col-span-2 relative overflow-hidden">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe] col-span-2 relative overflow-hidden">
               <div className="flex justify-between items-start mb-4">
                   <div>
-                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                          <Target className="text-purple-600" /> Meta de Faturamento (Teto)
+                      <h3 className="text-lg font-bold text-[#0a0f1e] flex items-center gap-2">
+                          <Target className="text-[#0284c7]" /> Meta de Faturamento (Teto)
                       </h3>
-                      <p className="text-sm text-slate-500">Acompanhamento para não estourar o limite (MEI/Simples).</p>
+                      <p className="text-sm text-[#64748b]">Acompanhamento para não estourar o limite (MEI/Simples).</p>
                   </div>
                   <div className="text-right">
-                      <span className="text-2xl font-bold text-slate-800">{stats.percentage.toFixed(1)}%</span>
-                      <p className="text-xs text-slate-400">do limite mensal</p>
+                      <span className="text-2xl font-bold text-[#0a0f1e]">{stats.percentage.toFixed(1)}%</span>
+                      <p className="text-xs text-[#64748b]">do limite mensal</p>
                   </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-slate-100 rounded-full h-6 mb-2 relative">
+              <div className="w-full bg-[#f0f9ff] rounded-full h-6 mb-2 relative">
                   <div 
                     className={`h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2 text-[10px] font-bold text-white shadow-lg ${
                         stats.percentage >= 100 ? 'bg-red-500' : 
-                        stats.percentage >= 80 ? 'bg-amber-500' : 'bg-green-500'
+                        stats.percentage >= 80 ? 'bg-[#0284c7]' : 'bg-green-500'
                     }`}
                     style={{ width: `${Math.min(stats.percentage, 100)}%` }}
                   >
                   </div>
               </div>
-              <div className="flex justify-between text-xs font-bold text-slate-400">
+              <div className="flex justify-between text-xs font-bold text-[#64748b]">
                   <span>R$ 0</span>
                   <span>Meta: R$ {stats.goal.toLocaleString('pt-BR')}</span>
               </div>
@@ -110,7 +110,7 @@ const Fiscal: React.FC = () => {
               {/* Critical Alerts */}
               {stats.percentage >= 80 && (
                   <div className={`mt-4 p-3 rounded-lg border flex items-start gap-3 ${
-                      stats.percentage >= 100 ? 'bg-red-50 border-red-100 text-red-700' : 'bg-amber-50 border-amber-100 text-amber-700'
+                      stats.percentage >= 100 ? 'bg-red-50 border-red-100 text-red-700' : 'bg-[#fef9c3] border-[#fef9c3] text-[#854d0e]'
                   }`}>
                       <AlertTriangle className="shrink-0 mt-0.5" size={18} />
                       <div>
@@ -126,8 +126,8 @@ const Fiscal: React.FC = () => {
           </div>
 
           {/* 2. BAR CHART (SCHEDULED vs ISSUED) */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-              <h3 className="text-sm font-bold text-slate-500 mb-4 flex items-center gap-2">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe]">
+              <h3 className="text-sm font-bold text-[#64748b] mb-4 flex items-center gap-2">
                   <BarChart3 size={16} /> Realização Fiscal (Mês Atual)
               </h3>
               <div className="h-32">
@@ -145,7 +145,7 @@ const Fiscal: React.FC = () => {
                   </ResponsiveContainer>
               </div>
               <div className="mt-2 text-center">
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[#64748b]">
                       Faltam <strong>R$ {(stats.totalScheduled - stats.totalIssued).toLocaleString('pt-BR')}</strong> para regularizar este mês.
                   </span>
               </div>
@@ -153,23 +153,23 @@ const Fiscal: React.FC = () => {
       </div>
 
       {/* --- INVOICE LIST --- */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-700">Fila de Emissão & Auditoria</h3>
-              <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-bold">{stats.pendingCount} Pendentes</span>
+      <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
+          <div className="p-4 bg-[#f0f9ff] border-b border-[#e0f2fe] flex justify-between items-center">
+              <h3 className="font-bold text-[#0a0f1e]">Fila de Emissão & Auditoria</h3>
+              <span className="text-xs bg-[#e0f2fe] text-[#64748b] px-2 py-1 rounded-full font-bold">{stats.pendingCount} Pendentes</span>
           </div>
           
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#e0f2fe]">
               {sortedInvoices.map(invoice => {
                   const client = getClient(invoice.clientId);
                   const isDraft = invoice.status === 'DRAFT';
                   const isOverdue = invoice.status === 'OVERDUE';
 
                   return (
-                      <div key={invoice.id} className={`p-4 flex flex-col md:flex-row items-center gap-4 transition-colors ${isOverdue ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
+                      <div key={invoice.id} className={`p-4 flex flex-col md:flex-row items-center gap-4 transition-colors ${isOverdue ? 'bg-red-50' : 'hover:bg-[#f0f9ff]'}`}>
                           <div className="min-w-[50px] flex justify-center">
                               {isDraft ? (
-                                  <AlertCircle className="text-amber-400" size={24} />
+                                  <AlertCircle className="text-[#0284c7]" size={24} />
                               ) : isOverdue ? (
                                   <XCircle className="text-red-500" size={24} />
                               ) : (
@@ -178,16 +178,16 @@ const Fiscal: React.FC = () => {
                           </div>
                           
                           <div className="flex-1 w-full text-center md:text-left">
-                              <h4 className="font-bold text-slate-800">{client?.name || 'Cliente Removido'}</h4>
-                              <p className="text-xs text-slate-500">
+                              <h4 className="font-bold text-[#0a0f1e]">{client?.name || 'Cliente Removido'}</h4>
+                              <p className="text-xs text-[#64748b]">
                                   Gerado em: {new Date(invoice.createdAt).toLocaleDateString()}
                               </p>
-                              <div className="text-xs font-mono text-slate-600 mt-1">
+                              <div className="text-xs font-mono text-[#64748b] mt-1">
                                   Valor: R$ {invoice.totalAmount.toFixed(2)}
                               </div>
                           </div>
 
-                          <div className="flex-1 hidden md:block text-xs text-slate-500">
+                          <div className="flex-1 hidden md:block text-xs text-[#64748b]">
                                {invoice.items.map((i, idx) => (
                                    <div key={idx}>{i.quantity}x {i.name}</div>
                                ))}
@@ -206,7 +206,7 @@ const Fiscal: React.FC = () => {
                                       onClick={() => toggleInvoiceOverdue(invoice.id)}
                                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors border ${
                                           isOverdue 
-                                            ? 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100' 
+                                            ? 'bg-white text-[#64748b] border-[#e0f2fe] hover:bg-[#f0f9ff]' 
                                             : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
                                       }`}
                                       title={isOverdue ? "Remover status de inadimplência" : "Marcar como Em Atraso"}
@@ -224,7 +224,7 @@ const Fiscal: React.FC = () => {
                   );
               })}
               {sortedInvoices.length === 0 && (
-                  <div className="p-8 text-center text-slate-400">Nenhuma nota fiscal registrada.</div>
+                  <div className="p-8 text-center text-[#64748b]">Nenhuma nota fiscal registrada.</div>
               )}
           </div>
       </div>
@@ -233,7 +233,7 @@ const Fiscal: React.FC = () => {
       {auditModalOpen && selectedInvoice && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <div className="p-6 bg-slate-800 text-white flex justify-between items-center rounded-t-xl">
+                  <div className="p-6 bg-[#0284c7] text-white flex justify-between items-center rounded-t-xl">
                       <div>
                           <h3 className="text-xl font-bold flex items-center gap-2">
                               <ClipboardCheck /> Dados para Emissão
@@ -245,8 +245,8 @@ const Fiscal: React.FC = () => {
 
                   <div className="p-6 space-y-6">
                       {/* 1. Client Data Group */}
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                          <h4 className="font-bold text-slate-700 mb-3 border-b border-slate-200 pb-1">Tomador do Serviço / Cliente</h4>
+                      <div className="bg-[#f0f9ff] p-4 rounded-lg border border-[#e0f2fe]">
+                          <h4 className="font-bold text-[#0a0f1e] mb-3 border-b border-[#e0f2fe] pb-1">Tomador do Serviço / Cliente</h4>
                           {(() => {
                               const c = getClient(selectedInvoice.clientId);
                               if (!c) return <p className="text-red-500">Cliente não encontrado.</p>;
@@ -264,15 +264,15 @@ const Fiscal: React.FC = () => {
                       </div>
 
                       {/* 2. Service/Product Data Group */}
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                          <h4 className="font-bold text-slate-700 mb-3 border-b border-slate-200 pb-1">Detalhes do Item (Serviço/Produto)</h4>
+                      <div className="bg-[#f0f9ff] p-4 rounded-lg border border-[#e0f2fe]">
+                          <h4 className="font-bold text-[#0a0f1e] mb-3 border-b border-[#e0f2fe] pb-1">Detalhes do Item (Serviço/Produto)</h4>
                           {selectedInvoice.items.map((invItem, idx) => {
                               const itemDef = items.find(i => i.id === invItem.itemId);
                               const totalTax = itemDef?.issRate ? (invItem.total * (itemDef.issRate / 100)) : 0;
 
                               return (
-                                  <div key={idx} className="mb-4 last:mb-0 border-b border-slate-200 pb-4 last:border-0 last:pb-0">
-                                      <div className="flex justify-between font-bold text-slate-800 mb-2">
+                                  <div key={idx} className="mb-4 last:mb-0 border-b border-[#e0f2fe] pb-4 last:border-0 last:pb-0">
+                                      <div className="flex justify-between font-bold text-[#0a0f1e] mb-2">
                                           <span>{invItem.name}</span>
                                           <span>R$ {invItem.total.toFixed(2)}</span>
                                       </div>
@@ -303,7 +303,7 @@ const Fiscal: React.FC = () => {
                       <div className="flex justify-end pt-4 gap-3">
                           <button 
                             onClick={() => setAuditModalOpen(false)}
-                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium"
+                            className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg font-medium"
                           >
                               Cancelar
                           </button>
@@ -329,7 +329,7 @@ const CopyField: React.FC<{ label: string, value?: string, onCopy: () => void }>
     
     return (
     <div className="group relative">
-        <label className="block text-[10px] font-bold text-slate-400 uppercase">{label}</label>
+        <label className="block text-[10px] font-bold text-[#64748b] uppercase">{label}</label>
         <div className="flex items-center gap-2">
             {missing ? (
                 <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded flex items-center gap-1">
@@ -337,10 +337,10 @@ const CopyField: React.FC<{ label: string, value?: string, onCopy: () => void }>
                 </span>
             ) : (
                 <>
-                    <span className="text-sm font-medium text-slate-800 truncate block w-full">{value}</span>
+                    <span className="text-sm font-medium text-[#0a0f1e] truncate block w-full">{value}</span>
                     <button 
                         onClick={onCopy}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-slate-200 rounded text-slate-500"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#e0f2fe] rounded text-[#64748b]"
                         title="Copiar"
                     >
                         <Copy size={14} />

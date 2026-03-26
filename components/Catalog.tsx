@@ -231,13 +231,13 @@ const Catalog: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Catálogo Unificado</h2>
-          <p className="text-slate-500">Gerencie produtos, serviços e insumos.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Catálogo Unificado</h2>
+          <p className="text-[#64748b]">Gerencie produtos, serviços e insumos.</p>
         </div>
         <div className="flex gap-3">
             <button 
                 onClick={() => setIsEntryModalOpen(true)}
-                className="bg-white text-slate-700 border border-slate-300 px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-slate-50 transition-colors"
+                className="bg-white text-[#0a0f1e] border border-[#e0f2fe] px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[#f0f9ff] transition-colors"
             >
                 <ArrowDownToLine size={18} />
                 <span>Nova Entrada</span>
@@ -257,26 +257,26 @@ const Catalog: React.FC = () => {
         {/* Search Bar */}
         <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400" />
+                <Search className="h-5 w-5 text-[#64748b]" />
             </div>
             <input
                 type="text"
                 placeholder="Buscar por nome, tipo ou componente da ficha técnica..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm sm:text-sm text-slate-900"
+                className="block w-full pl-10 pr-3 py-3 border border-[#e0f2fe] rounded-xl leading-5 bg-white placeholder-[#64748b] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm sm:text-sm text-[#0a0f1e]"
             />
         </div>
 
         {/* Sort Dropdown */}
         <div className="relative w-full md:w-64">
              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <ArrowUpDown className="h-4 w-4 text-slate-400" />
+                <ArrowUpDown className="h-4 w-4 text-[#64748b]" />
             </div>
             <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm sm:text-sm appearance-none cursor-pointer"
+                className="block w-full pl-10 pr-3 py-3 border border-[#e0f2fe] rounded-xl leading-5 bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 shadow-sm sm:text-sm appearance-none cursor-pointer"
             >
                 <option value="NAME">Nome (A-Z)</option>
                 <option value="MARGIN_DESC">Maior Rentabilidade</option>
@@ -287,7 +287,7 @@ const Catalog: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 border-b border-slate-200">
+      <div className="flex space-x-2 border-b border-[#e0f2fe]">
         {['ALL', 'PRODUCT', 'SERVICE', 'INPUT'].map((type) => (
           <button
             key={type}
@@ -295,7 +295,7 @@ const Catalog: React.FC = () => {
             className={`px-4 py-2 text-sm font-medium ${
               filter === type 
                 ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-[#64748b] hover:text-[#0a0f1e]'
             }`}
           >
             {type === 'ALL' ? 'Todos' : type === 'PRODUCT' ? 'Produtos' : type === 'SERVICE' ? 'Serviços' : 'Insumos'}
@@ -304,15 +304,15 @@ const Catalog: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
         {processedItems.length === 0 ? (
-            <div className="p-12 text-center text-slate-400">
+            <div className="p-12 text-center text-[#64748b]">
                 <Search size={48} className="mx-auto mb-4 opacity-20" />
                 <p>Nenhum item encontrado para sua busca.</p>
             </div>
         ) : (
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+          <thead className="bg-[#f0f9ff] text-[#64748b] border-b border-[#e0f2fe]">
             <tr>
               <th className="px-6 py-4">Nome</th>
               <th className="px-6 py-4">Custo / Tendência</th>
@@ -322,7 +322,7 @@ const Catalog: React.FC = () => {
               <th className="px-6 py-4 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[#e0f2fe]">
             {processedItems.map(item => {
                 const suggestedPrice = calculateSuggestedPrice(item.cost, item.desiredMargin || 0);
                 const isMarginErosion = item.type !== 'INPUT' && item.price < suggestedPrice;
@@ -334,21 +334,21 @@ const Catalog: React.FC = () => {
                 const marginPercent = item.price > 0 ? (contributionMargin / item.price) * 100 : 0;
 
                 return (
-              <tr key={item.id} className="hover:bg-slate-50">
+              <tr key={item.id} className="hover:bg-[#f0f9ff]">
                 <td className="px-6 py-4">
-                    <div className="font-medium text-slate-800">{item.name}</div>
+                    <div className="font-medium text-[#0a0f1e]">{item.name}</div>
                     <div className="flex flex-wrap gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold inline-block ${
-                            item.type === 'SERVICE' ? 'bg-purple-100 text-purple-700' :
+                            item.type === 'SERVICE' ? 'bg-[#e0f2fe] text-[#0284c7]' :
                             item.type === 'PRODUCT' ? 'bg-blue-100 text-blue-700' :
-                            'bg-slate-100 text-slate-700'
+                            'bg-[#f0f9ff] text-[#0a0f1e]'
                         }`}>
                             {item.type}
                         </span>
-                        {item.ncm && <span className="text-[10px] text-slate-400 px-1 border border-slate-200 rounded">NCM: {item.ncm}</span>}
+                        {item.ncm && <span className="text-[10px] text-[#64748b] px-1 border border-[#e0f2fe] rounded">NCM: {item.ncm}</span>}
                     </div>
                 </td>
-                <td className="px-6 py-4 text-slate-600">
+                <td className="px-6 py-4 text-[#64748b]">
                     <div className="flex items-center gap-2">
                         <span>R$ {item.cost.toFixed(2)}</span>
                         {item.costTrend === 'UP' && (
@@ -362,28 +362,28 @@ const Catalog: React.FC = () => {
                             </span>
                         )}
                     </div>
-                    {item.bom && item.bom.length > 0 && <span className="text-[10px] text-slate-400 block mt-1">(Custo via BOM)</span>}
+                    {item.bom && item.bom.length > 0 && <span className="text-[10px] text-[#64748b] block mt-1">(Custo via BOM)</span>}
                 </td>
                 <td className="px-6 py-4">
                     {item.type !== 'INPUT' ? (
                         <div className="flex flex-col">
-                            <span className="text-slate-800 font-medium">R$ {contributionMargin.toFixed(2)}</span>
-                            <span className={`text-xs font-bold ${marginPercent >= (item.desiredMargin || 30) ? 'text-green-600' : 'text-amber-500'}`}>
+                            <span className="text-[#0a0f1e] font-medium">R$ {contributionMargin.toFixed(2)}</span>
+                            <span className={`text-xs font-bold ${marginPercent >= (item.desiredMargin || 30) ? 'text-green-600' : 'text-[#0284c7]'}`}>
                                 {marginPercent.toFixed(1)}%
                             </span>
                         </div>
                     ) : (
-                        <span className="text-slate-400 text-xs">-</span>
+                        <span className="text-[#64748b] text-xs">-</span>
                     )}
                 </td>
                 <td className="px-6 py-4">
                    {item.type !== 'INPUT' ? (
                        <div className="flex flex-col">
-                           <span className={isMarginErosion ? 'text-red-600 font-bold flex items-center gap-1' : 'text-slate-800 font-medium'}>
+                           <span className={isMarginErosion ? 'text-red-600 font-bold flex items-center gap-1' : 'text-[#0a0f1e] font-medium'}>
                                R$ {item.price.toFixed(2)}
                                {isMarginErosion && <AlertTriangle size={12} />}
                            </span>
-                           <span className="text-xs text-slate-400" title={`Baseado na Margem de ${item.desiredMargin}%`}>
+                           <span className="text-xs text-[#64748b]" title={`Baseado na Margem de ${item.desiredMargin}%`}>
                                Sug: R$ {suggestedPrice.toFixed(2)}
                            </span>
                        </div>
@@ -393,13 +393,13 @@ const Catalog: React.FC = () => {
                     {item.type !== 'SERVICE' ? (
                          <div className="flex flex-col">
                              <div className="flex items-center gap-2">
-                                 <span className={item.stock <= item.minStock ? 'text-red-600 font-bold' : 'text-slate-600'}>
+                                 <span className={item.stock <= item.minStock ? 'text-red-600 font-bold' : 'text-[#64748b]'}>
                                      {item.stock} {item.unit}
                                  </span>
                                  {abcClass && (
                                      <span title={`Curva ABC: Classe ${abcClass}`} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                                          abcClass === 'A' ? 'bg-green-100 text-green-700' : 
-                                         abcClass === 'B' ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'
+                                         abcClass === 'B' ? 'bg-yellow-100 text-yellow-700' : 'bg-[#f0f9ff] text-[#64748b]'
                                      }`}>
                                          {abcClass}
                                      </span>
@@ -412,7 +412,7 @@ const Catalog: React.FC = () => {
                              )}
                          </div>
                     ) : (
-                        <span className="text-slate-400 italic">N/A</span>
+                        <span className="text-[#64748b] italic">N/A</span>
                     )}
                 </td>
                 <td className="px-6 py-4 text-right space-x-2 flex justify-end">
@@ -425,8 +425,8 @@ const Catalog: React.FC = () => {
                           <Search size={18} />
                       </button>
                   )}
-                  <button onClick={() => handleOpenModal(item)} className="text-slate-400 hover:text-blue-600 p-1"><Edit2 size={18} /></button>
-                  <button onClick={() => deleteItem(item.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={18} /></button>
+                  <button onClick={() => handleOpenModal(item)} className="text-[#64748b] hover:text-blue-600 p-1"><Edit2 size={18} /></button>
+                  <button onClick={() => deleteItem(item.id)} className="text-[#64748b] hover:text-red-600 p-1"><Trash2 size={18} /></button>
                 </td>
               </tr>
             )})}
@@ -439,21 +439,21 @@ const Catalog: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
               <h3 className="text-xl font-bold">{editingItem.id ? 'Editar Item' : 'Novo Item'}</h3>
-              <button onClick={() => setIsModalOpen(false)}><X size={24} className="text-slate-400" /></button>
+              <button onClick={() => setIsModalOpen(false)}><X size={24} className="text-[#64748b]" /></button>
             </div>
             
-            <div className="flex border-b border-slate-100">
+            <div className="flex border-b border-[#e0f2fe]">
                 <button 
                     onClick={() => setActiveTab('GENERAL')}
-                    className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'GENERAL' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'GENERAL' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}
                 >
                     <Package size={16} /> Dados Gerais
                 </button>
                 <button 
                     onClick={() => setActiveTab('FISCAL')}
-                    className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'FISCAL' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 ${activeTab === 'FISCAL' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}
                 >
                     <FileText size={16} /> Fiscal / Tributário (Opcional)
                 </button>
@@ -465,11 +465,11 @@ const Catalog: React.FC = () => {
               <>
               <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Tipo</label>
                     <select 
                       value={editingItem.type} 
                       onChange={e => setEditingItem({...editingItem, type: e.target.value as ItemType})}
-                      className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                      className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                     >
                       <option value="PRODUCT">Produto (Revenda/Kit)</option>
                       <option value="SERVICE">Serviço</option>
@@ -477,19 +477,19 @@ const Catalog: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Nome</label>
+                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Nome</label>
                     <input 
                       type="text" 
                       value={editingItem.name} 
                       onChange={e => setEditingItem({...editingItem, name: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                      className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                     />
                   </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1">
+                   <label className="block text-sm font-medium text-[#0a0f1e] mb-1">
                        {editingItem.id ? 'Custo Atual (R$)' : 'Custo Inicial (R$)'}
                        {(editingItem.type === 'SERVICE' || (editingItem.type === 'PRODUCT' && bomList.length > 0)) && 
                         <span className="text-[10px] font-normal text-blue-600 ml-1">(Calculado via BOM)</span>
@@ -500,26 +500,26 @@ const Catalog: React.FC = () => {
                       value={editingItem.cost} 
                       disabled={editingItem.type === 'SERVICE' || (editingItem.type === 'PRODUCT' && bomList.length > 0)} 
                       onChange={e => setEditingItem({...editingItem, cost: parseFloat(e.target.value)})}
-                      className="w-full border border-slate-300 rounded-lg p-2 disabled:bg-slate-100 disabled:text-slate-500 bg-white text-slate-900"
+                      className="w-full border border-[#e0f2fe] rounded-lg p-2 disabled:bg-[#f0f9ff] disabled:text-[#64748b] bg-white text-[#0a0f1e]"
                     />
                 </div>
                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1">Preço Venda (R$)</label>
+                   <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Preço Venda (R$)</label>
                    <input 
                       type="number" 
                       disabled={editingItem.type === 'INPUT'}
                       value={editingItem.price} 
                       onChange={e => setEditingItem({...editingItem, price: parseFloat(e.target.value)})}
-                      className="w-full border border-slate-300 rounded-lg p-2 disabled:bg-slate-100 bg-white text-slate-900"
+                      className="w-full border border-[#e0f2fe] rounded-lg p-2 disabled:bg-[#f0f9ff] bg-white text-[#0a0f1e]"
                     />
                 </div>
                 <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-1">Unidade Com. (UN/KG)</label>
+                   <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Unidade Com. (UN/KG)</label>
                    <input 
                       type="text" 
                       value={editingItem.unit} 
                       onChange={e => setEditingItem({...editingItem, unit: e.target.value.toUpperCase()})}
-                      className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 uppercase"
+                      className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] uppercase"
                       placeholder="UN"
                     />
                 </div>
@@ -536,7 +536,7 @@ const Catalog: React.FC = () => {
                               type="date" 
                               value={editingItem.expiryDate || ''} 
                               onChange={e => setEditingItem({...editingItem, expiryDate: e.target.value})}
-                              className="w-full border border-yellow-200 rounded-lg p-2 text-sm bg-white text-slate-900"
+                              className="w-full border border-yellow-200 rounded-lg p-2 text-sm bg-white text-[#0a0f1e]"
                           />
                       </div>
                   </div>
@@ -544,52 +544,52 @@ const Catalog: React.FC = () => {
 
               {/* Pricing Simulator */}
               {editingItem.type !== 'INPUT' && (
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                  <div className="bg-[#e0f2fe] p-4 rounded-lg border border-[#e0f2fe]">
                       <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-semibold text-indigo-800 flex items-center gap-2">
+                        <h4 className="font-semibold text-[#0284c7] flex items-center gap-2">
                             <TrendingUp size={16} /> Precificação Inteligente
                         </h4>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-xs font-medium text-indigo-600 mb-1">Margem Desejada (%)</label>
+                            <label className="block text-xs font-medium text-[#0284c7] mb-1">Margem Desejada (%)</label>
                             <input 
                                 type="number" 
                                 value={editingItem.desiredMargin} 
                                 onChange={e => setEditingItem({...editingItem, desiredMargin: parseFloat(e.target.value)})}
-                                className="w-full border border-indigo-200 rounded-lg p-2 text-sm bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 text-sm bg-white text-[#0a0f1e]"
                                 placeholder="Ex: 30"
                             />
                           </div>
                           <div>
-                             <label className="block text-xs font-medium text-indigo-600 mb-1">Preço Sugerido</label>
-                             <div className="text-lg font-bold text-indigo-700">
+                             <label className="block text-xs font-medium text-[#0284c7] mb-1">Preço Sugerido</label>
+                             <div className="text-lg font-bold text-[#0369a1]">
                                  R$ {calculateSuggestedPrice(editingItem.cost || 0, editingItem.desiredMargin || 0).toFixed(2)}
                              </div>
-                             <p className="text-[10px] text-indigo-400">Custo / (1 - Margem)</p>
+                             <p className="text-[10px] text-[#64748b]">Custo / (1 - Margem)</p>
                           </div>
                       </div>
                   </div>
               )}
 
               {editingItem.type !== 'SERVICE' && (
-                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4 bg-[#f0f9ff] p-4 rounded-lg">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">{editingItem.id ? 'Estoque Atual' : 'Estoque Inicial'}</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">{editingItem.id ? 'Estoque Atual' : 'Estoque Inicial'}</label>
                         <input 
                             type="number" 
                             value={editingItem.stock} 
                             onChange={e => setEditingItem({...editingItem, stock: parseFloat(e.target.value)})}
-                            className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                             />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Estoque Mínimo</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Estoque Mínimo</label>
                         <input 
                             type="number" 
                             value={editingItem.minStock} 
                             onChange={e => setEditingItem({...editingItem, minStock: parseFloat(e.target.value)})}
-                            className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                            className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                             />
                     </div>
                   </div>
@@ -597,13 +597,13 @@ const Catalog: React.FC = () => {
 
               {/* BOM Section */}
               {(editingItem.type === 'SERVICE' || editingItem.type === 'PRODUCT') && (
-                  <div className="border border-slate-200 rounded-lg p-4">
+                  <div className="border border-[#e0f2fe] rounded-lg p-4">
                       <div className="flex justify-between items-center mb-4">
-                          <h4 className="font-semibold text-slate-700 flex items-center">
+                          <h4 className="font-semibold text-[#0a0f1e] flex items-center">
                               <Layers size={18} className="mr-2" /> 
                               {editingItem.type === 'SERVICE' ? 'Ficha Técnica (Insumos)' : 'Composição do Produto (Kit/Manufatura)'}
                           </h4>
-                          <button onClick={handleAddBOMItem} className="text-xs bg-slate-200 px-2 py-1 rounded hover:bg-slate-300">
+                          <button onClick={handleAddBOMItem} className="text-xs bg-[#e0f2fe] px-2 py-1 rounded hover:bg-[#e0f2fe]">
                              + Item
                           </button>
                       </div>
@@ -611,7 +611,7 @@ const Catalog: React.FC = () => {
                         {bomList.map((bom, index) => (
                             <div key={index} className="flex items-center space-x-2">
                                 <select 
-                                    className="flex-1 border border-slate-300 rounded p-1 text-sm bg-white text-slate-900"
+                                    className="flex-1 border border-[#e0f2fe] rounded p-1 text-sm bg-white text-[#0a0f1e]"
                                     value={bom.itemId}
                                     onChange={e => {
                                         const newList = [...bomList];
@@ -626,7 +626,7 @@ const Catalog: React.FC = () => {
                                 </select>
                                 <input 
                                     type="number" 
-                                    className="w-20 border border-slate-300 rounded p-1 text-sm bg-white text-slate-900"
+                                    className="w-20 border border-[#e0f2fe] rounded p-1 text-sm bg-white text-[#0a0f1e]"
                                     placeholder="Qtd"
                                     value={bom.quantity}
                                     onChange={e => {
@@ -644,15 +644,15 @@ const Catalog: React.FC = () => {
                             </div>
                         ))}
                         {bomList.length === 0 && (
-                            <p className="text-sm text-slate-400 italic">
+                            <p className="text-sm text-[#64748b] italic">
                                 {editingItem.type === 'SERVICE' ? 'Nenhum insumo vinculado.' : 'Produto sem composição (Preço de custo manual).'}
                             </p>
                         )}
                         
                         {bomList.length > 0 && (
-                            <div className="mt-4 pt-2 border-t border-slate-100 flex justify-between items-center">
-                                <span className="text-sm font-medium text-slate-600">Custo Total da Composição:</span>
-                                <span className="font-bold text-slate-800">R$ {
+                            <div className="mt-4 pt-2 border-t border-[#e0f2fe] flex justify-between items-center">
+                                <span className="text-sm font-medium text-[#64748b]">Custo Total da Composição:</span>
+                                <span className="font-bold text-[#0a0f1e]">R$ {
                                     bomList.reduce((acc, bom) => {
                                         const input = items.find(i => i.id === bom.itemId);
                                         return acc + (input ? input.cost * bom.quantity : 0);
@@ -679,13 +679,13 @@ const Catalog: React.FC = () => {
 
                       {/* Common Fields */}
                       <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                          <label className="block text-sm font-medium text-[#0a0f1e] mb-1">
                               Situação Tributária ({isSimplesNacional ? 'CSOSN' : 'CST'})
                           </label>
                           <select 
                               value={editingItem.cst_csosn || (isSimplesNacional ? '102' : '00')} 
                               onChange={e => setEditingItem({...editingItem, cst_csosn: e.target.value})}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                           >
                               {isSimplesNacional ? (
                                   <optgroup label="Simples Nacional (CSOSN)">
@@ -713,35 +713,35 @@ const Catalog: React.FC = () => {
                           <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">NCM (8 dígitos)</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">NCM (8 dígitos)</label>
                                     <input 
                                         type="text" 
                                         maxLength={8}
                                         placeholder="Ex: 33049990"
                                         value={editingItem.ncm || ''} 
                                         onChange={e => setEditingItem({...editingItem, ncm: e.target.value.replace(/\D/g,'')})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 font-mono"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] font-mono"
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">Nomenclatura Comum do Mercosul</p>
+                                    <p className="text-xs text-[#64748b] mt-1">Nomenclatura Comum do Mercosul</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">CEST</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">CEST</label>
                                     <input 
                                         type="text" 
                                         placeholder="Ex: 2002900"
                                         value={editingItem.cest || ''} 
                                         onChange={e => setEditingItem({...editingItem, cest: e.target.value.replace(/\D/g,'')})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 font-mono"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] font-mono"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Origem da Mercadoria</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Origem da Mercadoria</label>
                                     <select 
                                         value={editingItem.origin || '0'} 
                                         onChange={e => setEditingItem({...editingItem, origin: e.target.value})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                     >
                                         <option value="0">0 - Nacional</option>
                                         <option value="1">1 - Estrangeira (Imp. direta)</option>
@@ -751,13 +751,13 @@ const Catalog: React.FC = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">GTIN / EAN (Código de Barras)</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">GTIN / EAN (Código de Barras)</label>
                                     <input 
                                         type="text" 
                                         placeholder="Ex: 789..."
                                         value={editingItem.gtin || ''} 
                                         onChange={e => setEditingItem({...editingItem, gtin: e.target.value.replace(/\D/g,'')})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 font-mono"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] font-mono"
                                     />
                                 </div>
                             </div>
@@ -768,34 +768,34 @@ const Catalog: React.FC = () => {
                       {editingItem.type === 'SERVICE' && (
                           <>
                              <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Código do Serviço (LC 116/03)</label>
+                                <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Código do Serviço (LC 116/03)</label>
                                 <input 
                                     type="text" 
                                     placeholder="Ex: 06.01 - Barbearia..."
                                     value={editingItem.lc116 || ''} 
                                     onChange={e => setEditingItem({...editingItem, lc116: e.target.value})}
-                                    className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                    className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 />
                              </div>
                              <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Cód. Tributação Municipal</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Cód. Tributação Municipal</label>
                                     <input 
                                         type="text" 
                                         placeholder="Ex: 12345"
                                         value={editingItem.municipalCode || ''} 
                                         onChange={e => setEditingItem({...editingItem, municipalCode: e.target.value})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Alíquota ISS (%)</label>
+                                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Alíquota ISS (%)</label>
                                     <input 
                                         type="number" 
                                         placeholder="Ex: 5"
                                         value={editingItem.issRate ?? ''} 
                                         onChange={e => setEditingItem({...editingItem, issRate: parseFloat(e.target.value)})}
-                                        className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                        className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                     />
                                 </div>
                              </div>
@@ -805,8 +805,8 @@ const Catalog: React.FC = () => {
               )}
             </div>
 
-            <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+            <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
               <button 
                 onClick={handleSave} 
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -823,20 +823,20 @@ const Catalog: React.FC = () => {
       {isEntryModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
-                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                  <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
                       <h3 className="text-xl font-bold flex items-center gap-2">
                           <ArrowDownToLine className="text-green-600" />
                           Nova Entrada de Estoque
                       </h3>
-                      <button onClick={() => setIsEntryModalOpen(false)}><X size={24} className="text-slate-400" /></button>
+                      <button onClick={() => setIsEntryModalOpen(false)}><X size={24} className="text-[#64748b]" /></button>
                   </div>
                   <div className="p-6 space-y-4">
                       <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Item</label>
+                          <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Item</label>
                           <select
                               value={entryForm.itemId}
                               onChange={e => setEntryForm({...entryForm, itemId: e.target.value})}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                           >
                               <option value="">Selecione um item...</option>
                               {items.filter(i => i.type !== 'SERVICE').map(i => (
@@ -846,39 +846,39 @@ const Catalog: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                           <div>
-                              <label className="block text-sm font-medium text-slate-700 mb-1">Quantidade Comprada</label>
+                              <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Quantidade Comprada</label>
                               <input 
                                   type="number" 
                                   min="1"
                                   value={entryForm.quantity}
                                   onChange={e => setEntryForm({...entryForm, quantity: parseFloat(e.target.value)})}
-                                  className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                  className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                               />
                           </div>
                           <div>
-                              <label className="block text-sm font-medium text-slate-700 mb-1">Preço Unit. Compra</label>
+                              <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Preço Unit. Compra</label>
                               <input 
                                   type="number" 
                                   min="0"
                                   value={entryForm.price}
                                   onChange={e => setEntryForm({...entryForm, price: parseFloat(e.target.value)})}
-                                  className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                  className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                               />
                           </div>
                       </div>
                       <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Nova Validade (Opcional)</label>
+                          <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Nova Validade (Opcional)</label>
                           <input 
                               type="date"
                               value={entryForm.expiryDate}
                               onChange={e => setEntryForm({...entryForm, expiryDate: e.target.value})}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                           />
-                          <p className="text-xs text-slate-400 mt-1">O sistema manterá a data mais próxima se a atual for menor.</p>
+                          <p className="text-xs text-[#64748b] mt-1">O sistema manterá a data mais próxima se a atual for menor.</p>
                       </div>
 
                       {entryForm.itemId && entryForm.quantity > 0 && (
-                          <div className="bg-slate-50 p-3 rounded text-sm text-slate-600 border border-slate-100">
+                          <div className="bg-[#f0f9ff] p-3 rounded text-sm text-[#64748b] border border-[#e0f2fe]">
                               <p>Custo Atual: <strong>R$ {items.find(i => i.id === entryForm.itemId)?.cost.toFixed(2)}</strong></p>
                               <p>Novo Custo Médio (Previsto): <strong>R$ {
                                   (() => {
@@ -892,8 +892,8 @@ const Catalog: React.FC = () => {
                           </div>
                       )}
                   </div>
-                  <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-                      <button onClick={() => setIsEntryModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                  <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+                      <button onClick={() => setIsEntryModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
                       <button 
                           onClick={handleSaveEntry} 
                           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-lg shadow-green-500/20"
@@ -916,18 +916,18 @@ const Catalog: React.FC = () => {
                    <button onClick={() => setIsProcurementOpen(false)} className="hover:bg-white/20 p-1 rounded"><X size={20} /></button>
                 </div>
                 <div className="p-6">
-                    <p className="text-slate-600 mb-4">
-                        Buscando fornecedores online para: <strong className="text-slate-900">{procurementItem}</strong>
+                    <p className="text-[#64748b] mb-4">
+                        Buscando fornecedores online para: <strong className="text-[#0a0f1e]">{procurementItem}</strong>
                     </p>
                     
                     {isSearching ? (
                         <div className="py-8 flex flex-col items-center justify-center space-y-4">
                              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-                             <p className="text-sm text-slate-500 animate-pulse">A IA está consultando o mercado...</p>
+                             <p className="text-sm text-[#64748b] animate-pulse">A IA está consultando o mercado...</p>
                         </div>
                     ) : (
                         <div 
-                            className="prose prose-sm prose-blue max-w-none bg-slate-50 p-4 rounded-lg border border-slate-100"
+                            className="prose prose-sm prose-blue max-w-none bg-[#f0f9ff] p-4 rounded-lg border border-[#e0f2fe]"
                             dangerouslySetInnerHTML={{ __html: procurementResult }}
                         />
                     )}

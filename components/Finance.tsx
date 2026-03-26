@@ -22,7 +22,7 @@ const DRE_STRUCTURE_LABELS: Record<DRECategoryType, { label: string, color: stri
     'PERSONNEL': { label: 'Gastos com Pessoal', color: 'text-red-600' },
     'OPERATIONAL_EXPENSE': { label: 'Despesas Operacionais', color: 'text-red-600' },
     'DEPRECIATION': { label: 'Depreciação/Amortização', color: 'text-red-600' },
-    'OTHER_RESULT': { label: 'Outras Receitas/Despesas (Fin)', color: 'text-slate-600' },
+    'OTHER_RESULT': { label: 'Outras Receitas/Despesas (Fin)', color: 'text-[#64748b]' },
     'INCOME_TAX': { label: 'Tributos (IRPJ/CSLL)', color: 'text-red-700' }
 };
 
@@ -526,18 +526,18 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
   }, [contacts, editingTx.type]);
 
   const ReportHeader = ({ title, periodDate }: { title: string, periodDate: Date }) => (
-      <div className="bg-slate-900 text-white p-6 rounded-t-xl flex justify-between items-end mb-0">
+      <div className="bg-[#0284c7] text-white p-6 rounded-t-xl flex justify-between items-end mb-0">
           <div>
               <div className="flex items-center gap-2 mb-2">
-                  <Hexagon size={18} className="text-amber-400 fill-amber-400" />
-                  <span className="text-xs font-bold tracking-widest uppercase text-slate-400">Relatório Gerencial</span>
+                  <Hexagon size={18} className="text-[#0284c7] fill-[#0284c7]" />
+                  <span className="text-xs font-bold tracking-widest uppercase text-[#64748b]">Relatório Gerencial</span>
               </div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                  {title} <span className="text-slate-500 text-lg font-light">|</span> <span className="text-amber-400">Sozio ERP</span>
+                  {title} <span className="text-[#64748b] text-lg font-light">|</span> <span className="text-[#0284c7]">Odontly ERP</span>
               </h2>
           </div>
           <div className="text-right">
-              <p className="text-sm font-medium text-slate-300">Empresa</p>
+              <p className="text-sm font-medium text-[#64748b]">Empresa</p>
               <p className="font-bold text-lg leading-tight mb-2">{settings.companyName}</p>
               <div className="inline-block bg-white/10 px-3 py-1 rounded text-xs font-mono">
                   Competência: {periodDate.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase()}
@@ -550,20 +550,20 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Gestão Financeira & FP&A</h2>
-          <p className="text-slate-500">Tesouraria, Fluxo de Caixa e Controladoria no padrão Sozio.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Gestão Financeira & FP&A</h2>
+          <p className="text-[#64748b]">Tesouraria, Fluxo de Caixa e Controladoria no padrão Odontly.</p>
         </div>
-        <div className="flex bg-slate-200 p-1 rounded-lg overflow-x-auto">
-             <button onClick={() => setActiveTab('CASHFLOW')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CASHFLOW' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:text-slate-800'}`}>
+        <div className="flex bg-[#e0f2fe] p-1 rounded-lg overflow-x-auto">
+             <button onClick={() => setActiveTab('CASHFLOW')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CASHFLOW' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
                  <List size={16} /> Fluxo
              </button>
-             <button onClick={() => setActiveTab('TREASURY')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'TREASURY' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:text-slate-800'}`}>
+             <button onClick={() => setActiveTab('TREASURY')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'TREASURY' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
                  <Wallet size={16} /> Tesouraria
              </button>
-             <button onClick={() => setActiveTab('DRE')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'DRE' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:text-slate-800'}`}>
+             <button onClick={() => setActiveTab('DRE')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'DRE' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
                  <PieChart size={16} /> DRE
              </button>
-             <button onClick={() => setActiveTab('CONFIG')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CONFIG' ? 'bg-white shadow text-blue-600' : 'text-slate-600 hover:text-slate-800'}`}>
+             <button onClick={() => setActiveTab('CONFIG')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CONFIG' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
                  <Building2 size={16} /> Config
              </button>
         </div>
@@ -572,23 +572,23 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
       {/* --- CASHFLOW TAB --- */}
       {activeTab === 'CASHFLOW' && (
       <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
             <ReportHeader title="Fluxo de Caixa" periodDate={currentMonth} />
-            <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4 bg-white border-b border-slate-100">
-                <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-1">
-                    <button onClick={() => handleMonthChange(currentMonth, setCurrentMonth, 'prev')} className="p-2 hover:bg-slate-200 rounded"><ChevronLeft size={20} /></button>
-                    <span className="font-bold text-slate-700 w-40 text-center capitalize text-lg">
+            <div className="flex flex-col md:flex-row justify-between items-center p-4 gap-4 bg-white border-b border-[#e0f2fe]">
+                <div className="flex items-center gap-2 bg-[#f0f9ff] rounded-lg p-1">
+                    <button onClick={() => handleMonthChange(currentMonth, setCurrentMonth, 'prev')} className="p-2 hover:bg-[#e0f2fe] rounded"><ChevronLeft size={20} /></button>
+                    <span className="font-bold text-[#0a0f1e] w-40 text-center capitalize text-lg">
                         {currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
                     </span>
-                    <button onClick={() => handleMonthChange(currentMonth, setCurrentMonth, 'next')} className="p-2 hover:bg-slate-200 rounded"><ChevronRight size={20} /></button>
+                    <button onClick={() => handleMonthChange(currentMonth, setCurrentMonth, 'next')} className="p-2 hover:bg-[#e0f2fe] rounded"><ChevronRight size={20} /></button>
                 </div>
                 <div className="flex items-center gap-4 flex-1 justify-end">
                     <div className="relative w-48 hidden md:block">
-                        <User className="absolute left-2.5 top-2.5 text-slate-400" size={16} />
+                        <User className="absolute left-2.5 top-2.5 text-[#64748b]" size={16} />
                         <select 
                             value={selectedContactFilter}
                             onChange={e => setSelectedContactFilter(e.target.value)}
-                            className="w-full pl-9 pr-2 py-2 border border-slate-300 rounded-lg text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full pl-9 pr-2 py-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
                         >
                             <option value="">Todos os Contatos</option>
                             {contacts.map(c => (
@@ -609,8 +609,8 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
 
         {/* Charts & Summary Code */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 h-full min-h-[28rem]">
-                <h4 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e0f2fe] h-full min-h-[28rem]">
+                <h4 className="font-bold text-[#0a0f1e] mb-4 flex items-center gap-2">
                     <BarChart2 size={18} className="text-blue-500"/> Movimentação Diária
                 </h4>
                 <ResponsiveContainer width="100%" height="90%">
@@ -670,9 +670,9 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                  </div>
 
                  {/* Result Card */}
-                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex-1">
+                 <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe] flex-1">
                     <div>
-                        <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <h3 className="font-bold text-[#0a0f1e] mb-4 flex items-center gap-2">
                             <TrendingUp size={20} /> Realizado (Caixa)
                         </h3>
                         <div className="space-y-4">
@@ -684,7 +684,7 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                 <span className="text-sm text-red-800 font-medium">Saídas</span>
                                 <span className="font-bold text-red-700">{formatCurrency(monthStats.realizedExpense)}</span>
                             </div>
-                            <div className="border-t border-slate-100 my-2"></div>
+                            <div className="border-t border-[#e0f2fe] my-2"></div>
                             <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
                                 <span className="text-sm text-blue-800 font-medium">Saldo em Caixa (Atual)</span>
                                 <span className={`font-bold ${currentTotalBalance >= 0 ? 'text-blue-700' : 'text-red-600'}`}>{formatCurrency(currentTotalBalance)}</span>
@@ -696,9 +696,9 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
         </div>
         
         {/* Transaction Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
             <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                <thead className="bg-[#f0f9ff] text-[#64748b] font-semibold border-b border-[#e0f2fe]">
                     <tr>
                         <th className="px-4 py-3">Dia</th>
                         <th className="px-4 py-3">Descrição / Parceiro</th>
@@ -708,7 +708,7 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                         <th className="px-4 py-3"></th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#e0f2fe]">
                     {unifiedTransactions.map(tx => {
                         const contactName = contacts.find(c => c.id === tx.contactId)?.name || 'Sem Contato';
                         const itemNames = tx.items && tx.items.length > 0 
@@ -716,24 +716,24 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                             : tx.description;
 
                         return (
-                        <tr key={tx.id} className={`hover:bg-slate-50 group ${tx.isProjected ? 'bg-slate-50/50' : ''}`}>
-                            <td className="px-4 py-3 text-slate-500 font-mono">{getDayFromDateString(tx.date)}</td>
+                        <tr key={tx.id} className={`hover:bg-[#f0f9ff] group ${tx.isProjected ? 'bg-[#f0f9ff]/50' : ''}`}>
+                            <td className="px-4 py-3 text-[#64748b] font-mono">{getDayFromDateString(tx.date)}</td>
                             <td className="px-4 py-3">
-                                <div className={`font-bold ${tx.isProjected ? 'text-slate-500 italic' : 'text-slate-700'} flex items-center gap-2`}>
+                                <div className={`font-bold ${tx.isProjected ? 'text-[#64748b] italic' : 'text-[#0a0f1e]'} flex items-center gap-2`}>
                                     {itemNames}
                                     {tx.items && tx.items.length > 0 && (
-                                        <span className="bg-slate-100 text-slate-600 text-[10px] px-1 rounded flex items-center gap-1">
+                                        <span className="bg-[#f0f9ff] text-[#64748b] text-[10px] px-1 rounded flex items-center gap-1">
                                             <List size={10} /> {tx.items.length}
                                         </span>
                                     )}
                                 </div>
-                                <div className="text-xs text-slate-400 flex items-center gap-1">
-                                    <span className="flex items-center gap-1 font-medium text-slate-500"><User size={10}/> {contactName}</span>
+                                <div className="text-xs text-[#64748b] flex items-center gap-1">
+                                    <span className="flex items-center gap-1 font-medium text-[#64748b]"><User size={10}/> {contactName}</span>
                                 </div>
                             </td>
-                            <td className="px-4 py-3 text-xs text-slate-500">
+                            <td className="px-4 py-3 text-xs text-[#64748b]">
                                 {tx.isProjected ? (
-                                    <span className="flex items-center gap-1 text-indigo-500 font-medium"><CalendarClock size={12} /> Agenda</span>
+                                    <span className="flex items-center gap-1 text-[#0284c7] font-medium"><CalendarClock size={12} /> Agenda</span>
                                 ) : (
                                     <>
                                         <div className="font-medium">{accounts.find(a => a.id === tx.accountId)?.name}</div>
@@ -746,11 +746,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                             </td>
                             <td className="px-4 py-3 text-center">
                                 {tx.isProjected ? (
-                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">PROJETADO</span>
+                                    <span className="px-2 py-1 rounded text-[10px] font-bold bg-[#e0f2fe] text-[#0284c7] border border-[#e0f2fe]">PROJETADO</span>
                                 ) : (
                                     <button 
                                         onClick={() => updateTransaction({ ...tx, status: tx.status === 'PAID' ? 'PENDING' : 'PAID', paidAt: tx.status === 'PENDING' ? new Date().toISOString().split('T')[0] : undefined })}
-                                        className={`px-2 py-1 rounded text-[10px] font-bold ${tx.status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
+                                        className={`px-2 py-1 rounded text-[10px] font-bold ${tx.status === 'PAID' ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef9c3] text-[#854d0e]'}`}
                                     >
                                         {tx.status === 'PAID' ? 'PAGO' : 'ABERTO'}
                                     </button>
@@ -763,9 +763,9 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                             onClick={() => updateTransaction({...tx, isReconciled: !tx.isReconciled})}
                                             title={tx.isReconciled ? "Conciliado" : "Conciliar"}
                                         >
-                                            {tx.isReconciled ? <CheckCircle size={16} className="text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-slate-300 hover:border-blue-400"></div>}
+                                            {tx.isReconciled ? <CheckCircle size={16} className="text-blue-500" /> : <div className="w-4 h-4 rounded-full border border-[#e0f2fe] hover:border-blue-400"></div>}
                                         </button>
-                                        <button onClick={() => openTxModal(tx)} className="text-slate-400 hover:text-blue-600"><List size={16} /></button>
+                                        <button onClick={() => openTxModal(tx)} className="text-[#64748b] hover:text-blue-600"><List size={16} /></button>
                                         <button onClick={() => deleteTransaction(tx.id)} className="text-red-400 hover:text-red-600"><Trash2 size={16} /></button>
                                     </div>
                                 )}
@@ -782,23 +782,23 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
       {activeTab === 'TREASURY' && (
           <div className="space-y-6">
               <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-slate-700">Contas & Carteiras</h3>
-                  <button onClick={() => setIsAccountModalOpen(true)} className="bg-slate-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-slate-900"><Plus size={18} /> Nova Conta</button>
+                  <h3 className="text-xl font-bold text-[#0a0f1e]">Contas & Carteiras</h3>
+                  <button onClick={() => setIsAccountModalOpen(true)} className="bg-[#0284c7] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#0284c7]"><Plus size={18} /> Nova Conta</button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {accounts.map(acc => (
-                      <div key={acc.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                      <div key={acc.id} className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe] hover:shadow-md transition-shadow relative overflow-hidden group">
                           <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: acc.color || '#ccc' }}></div>
                           <div className="flex justify-between items-start mb-4 pl-4">
                               <div>
-                                  <h4 className="font-bold text-slate-800 text-lg">{acc.name}</h4>
-                                  <span className="text-xs text-slate-500 uppercase tracking-wide">{acc.type}</span>
+                                  <h4 className="font-bold text-[#0a0f1e] text-lg">{acc.name}</h4>
+                                  <span className="text-xs text-[#64748b] uppercase tracking-wide">{acc.type}</span>
                               </div>
-                              <div className="p-2 bg-slate-50 rounded-full text-slate-600"><Wallet size={20} /></div>
+                              <div className="p-2 bg-[#f0f9ff] rounded-full text-[#64748b]"><Wallet size={20} /></div>
                           </div>
                           <div className="pl-4">
-                              <p className="text-sm text-slate-500">Saldo Atual</p>
-                              <p className={`text-2xl font-bold ${acc.balance >= 0 ? 'text-slate-800' : 'text-red-600'}`}>{formatCurrency(acc.balance)}</p>
+                              <p className="text-sm text-[#64748b]">Saldo Atual</p>
+                              <p className={`text-2xl font-bold ${acc.balance >= 0 ? 'text-[#0a0f1e]' : 'text-red-600'}`}>{formatCurrency(acc.balance)}</p>
                           </div>
                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                 <button onClick={() => { setEditingAccount(acc as any); setIsAccountModalOpen(true); }} className="p-1 bg-white shadow rounded text-blue-600"><List size={14}/></button>
@@ -812,14 +812,14 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
 
       {/* --- DRE TAB --- */}
       {activeTab === 'DRE' && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-100 max-w-4xl mx-auto overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] max-w-4xl mx-auto overflow-hidden">
                <ReportHeader title="Demonstrativo de Resultados (DRE)" periodDate={dreMonth} />
                <div className="p-8">
                <div className="flex flex-col items-center mb-8 gap-2">
-                   <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
-                        <button onClick={() => handleMonthChange(dreMonth, setDreMonth, 'prev')} className="p-2 hover:bg-white rounded shadow-sm text-slate-600"><ChevronLeft size={18} /></button>
-                        <span className="font-bold text-slate-700 w-40 text-center capitalize">{dreMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</span>
-                        <button onClick={() => handleMonthChange(dreMonth, setDreMonth, 'next')} className="p-2 hover:bg-white rounded shadow-sm text-slate-600"><ChevronRight size={18} /></button>
+                   <div className="flex items-center gap-2 bg-[#f0f9ff] rounded-lg p-1">
+                        <button onClick={() => handleMonthChange(dreMonth, setDreMonth, 'prev')} className="p-2 hover:bg-white rounded shadow-sm text-[#64748b]"><ChevronLeft size={18} /></button>
+                        <span className="font-bold text-[#0a0f1e] w-40 text-center capitalize">{dreMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+                        <button onClick={() => handleMonthChange(dreMonth, setDreMonth, 'next')} className="p-2 hover:bg-white rounded shadow-sm text-[#64748b]"><ChevronRight size={18} /></button>
                    </div>
                </div>
                <div className="space-y-1">
@@ -829,20 +829,20 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.GROSS_REVENUE.total)}</span>
                    </div>
                    {Object.entries(dreReport.GROSS_REVENUE.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
                    
                    {/* 2. DEDUCTIONS */}
-                   <div className="flex justify-between py-2 text-red-600 text-sm pl-4 border-t border-slate-100 mt-2 bg-red-50 rounded">
+                   <div className="flex justify-between py-2 text-red-600 text-sm pl-4 border-t border-[#e0f2fe] mt-2 bg-red-50 rounded">
                        <span>(-) Deduções e Impostos</span>
                        <span>{formatCurrency(dreReport.DEDUCTIONS.total)}</span>
                    </div>
                    {Object.entries(dreReport.DEDUCTIONS.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 3. NET REVENUE */}
-                   <div className="flex justify-between py-3 bg-slate-100 px-4 rounded font-bold text-slate-800 mt-1 border border-slate-200">
+                   <div className="flex justify-between py-3 bg-[#f0f9ff] px-4 rounded font-bold text-[#0a0f1e] mt-1 border border-[#e0f2fe]">
                        <span>(=) Receita Líquida</span>
                        <span>{formatCurrency(dreReport.netRevenue)}</span>
                    </div>
@@ -853,11 +853,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.VARIABLE_COST.total)}</span>
                    </div>
                    {Object.entries(dreReport.VARIABLE_COST.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 5. GROSS MARGIN */}
-                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-slate-800 mt-1 border border-slate-200">
+                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-[#0a0f1e] mt-1 border border-[#e0f2fe]">
                        <span>(=) Margem Bruta</span>
                        <span>{formatCurrency(dreReport.grossMargin)}</span>
                    </div>
@@ -868,11 +868,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.VARIABLE_EXPENSE.total)}</span>
                    </div>
                    {Object.entries(dreReport.VARIABLE_EXPENSE.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 7. CONTRIBUTION MARGIN */}
-                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-slate-800 mt-1 border-2 border-slate-200">
+                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-[#0a0f1e] mt-1 border-2 border-[#e0f2fe]">
                        <span>(=) Margem de Contribuição</span>
                        <span>{formatCurrency(dreReport.contributionMargin)}</span>
                    </div>
@@ -883,7 +883,7 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.PERSONNEL.total)}</span>
                    </div>
                    {Object.entries(dreReport.PERSONNEL.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 9. OPERATIONAL EXPENSES */}
@@ -892,11 +892,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.OPERATIONAL_EXPENSE.total)}</span>
                    </div>
                    {Object.entries(dreReport.OPERATIONAL_EXPENSE.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 10. EBITDA */}
-                   <div className="flex justify-between py-3 bg-slate-100 px-4 rounded font-bold text-slate-800 mt-1 border border-slate-300">
+                   <div className="flex justify-between py-3 bg-[#f0f9ff] px-4 rounded font-bold text-[#0a0f1e] mt-1 border border-[#e0f2fe]">
                        <span>(=) EBITDA</span>
                        <span>{formatCurrency(dreReport.ebitda)}</span>
                    </div>
@@ -907,20 +907,20 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.DEPRECIATION.total)}</span>
                    </div>
                    {Object.entries(dreReport.DEPRECIATION.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 12. OTHER RESULTS */}
-                   <div className="flex justify-between py-2 text-slate-600 text-sm pl-4 mt-1 bg-slate-50 rounded border border-slate-200">
+                   <div className="flex justify-between py-2 text-[#64748b] text-sm pl-4 mt-1 bg-[#f0f9ff] rounded border border-[#e0f2fe]">
                        <span>(+/-) Outras Receitas e Despesas</span>
                        <span className={dreReport.OTHER_RESULT.total >= 0 ? 'text-green-600' : 'text-red-600'}>{formatCurrency(dreReport.OTHER_RESULT.total)}</span>
                    </div>
                    {Object.entries(dreReport.OTHER_RESULT.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 13. OPERATIONAL RESULT */}
-                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-slate-800 mt-1 border border-slate-200">
+                   <div className="flex justify-between py-3 bg-white px-4 rounded font-bold text-[#0a0f1e] mt-1 border border-[#e0f2fe]">
                        <span>(=) Resultado Operacional</span>
                        <span>{formatCurrency(dreReport.operationalResult)}</span>
                    </div>
@@ -931,11 +931,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                        <span>{formatCurrency(dreReport.INCOME_TAX.total)}</span>
                    </div>
                    {Object.entries(dreReport.INCOME_TAX.details).map(([catName, val]) => (
-                       <div key={catName} className="flex justify-between py-1 text-xs text-slate-500 pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
+                       <div key={catName} className="flex justify-between py-1 text-xs text-[#64748b] pl-6 pr-4"><span>{catName}</span><span>{formatCurrency(val as number)}</span></div>
                    ))}
 
                    {/* 15. NET RESULT */}
-                   <div className="flex justify-between py-4 bg-slate-800 px-4 rounded-lg font-bold text-white mt-4 shadow-lg text-lg">
+                   <div className="flex justify-between py-4 bg-[#0284c7] px-4 rounded-lg font-bold text-white mt-4 shadow-lg text-lg">
                        <span>(=) Resultado Líquido</span>
                        <span className={dreReport.netResult >= 0 ? 'text-green-400' : 'text-red-400'}>{formatCurrency(dreReport.netResult)}</span>
                    </div>
@@ -946,19 +946,19 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
 
       {/* --- CONFIG TAB --- */}
       {activeTab === 'CONFIG' && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe]">
               <div className="flex justify-between items-center mb-6">
-                  <div><h3 className="text-lg font-bold text-slate-800">Plano de Contas Unificado</h3><p className="text-sm text-slate-500">Categorias de Caixa alinhadas à DRE.</p></div>
-                  <button onClick={() => openCategoryModal()} className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-900 flex items-center gap-2"><Plus size={16} /> Nova Categoria</button>
+                  <div><h3 className="text-lg font-bold text-[#0a0f1e]">Plano de Contas Unificado</h3><p className="text-sm text-[#64748b]">Categorias de Caixa alinhadas à DRE.</p></div>
+                  <button onClick={() => openCategoryModal()} className="bg-[#0284c7] text-white px-4 py-2 rounded-lg text-sm hover:bg-[#0284c7] flex items-center gap-2"><Plus size={16} /> Nova Categoria</button>
               </div>
               <div className="space-y-6 mb-8">
                   {(Object.keys(DRE_STRUCTURE_LABELS) as DRECategoryType[]).map(dreKey => (
-                      <div key={dreKey} className="border border-slate-200 rounded-lg overflow-hidden">
-                          <div className="flex justify-between items-center p-3 bg-slate-50 border-b border-slate-200"><span className={`font-bold text-sm uppercase tracking-wide ${DRE_STRUCTURE_LABELS[dreKey].color}`}>{DRE_STRUCTURE_LABELS[dreKey].label}</span><button onClick={() => openCategoryModal(dreKey)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded"><Plus size={12} /> Adicionar Item</button></div>
+                      <div key={dreKey} className="border border-[#e0f2fe] rounded-lg overflow-hidden">
+                          <div className="flex justify-between items-center p-3 bg-[#f0f9ff] border-b border-[#e0f2fe]"><span className={`font-bold text-sm uppercase tracking-wide ${DRE_STRUCTURE_LABELS[dreKey].color}`}>{DRE_STRUCTURE_LABELS[dreKey].label}</span><button onClick={() => openCategoryModal(dreKey)} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded"><Plus size={12} /> Adicionar Item</button></div>
                           <div className="p-0">
-                              {dreGroupedCategories[dreKey].length === 0 ? <div className="p-4 text-center text-xs text-slate-400 italic">Nenhuma categoria.</div> : 
-                                  <div className="divide-y divide-slate-100">{dreGroupedCategories[dreKey].map(cat => (
-                                          <div key={cat.id} className="flex justify-between items-center p-3 hover:bg-slate-50"><span className="text-sm text-slate-700 font-medium">{cat.name}</span>{!cat.isSystem && <button onClick={() => deleteCategory(cat.id)} className="text-slate-300 hover:text-red-500 p-1"><Trash2 size={14} /></button>}</div>
+                              {dreGroupedCategories[dreKey].length === 0 ? <div className="p-4 text-center text-xs text-[#64748b] italic">Nenhuma categoria.</div> : 
+                                  <div className="divide-y divide-[#e0f2fe]">{dreGroupedCategories[dreKey].map(cat => (
+                                          <div key={cat.id} className="flex justify-between items-center p-3 hover:bg-[#f0f9ff]"><span className="text-sm text-[#0a0f1e] font-medium">{cat.name}</span>{!cat.isSystem && <button onClick={() => deleteCategory(cat.id)} className="text-[#64748b] hover:text-red-500 p-1"><Trash2 size={14} /></button>}</div>
                                   ))}</div>
                               }
                           </div>
@@ -972,26 +972,26 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
       {isTxModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                  <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                  <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
                       <h3 className="text-xl font-bold">Lançamento Financeiro</h3>
-                      <button onClick={() => setIsTxModalOpen(false)}><XCircle size={24} className="text-slate-400" /></button>
+                      <button onClick={() => setIsTxModalOpen(false)}><XCircle size={24} className="text-[#64748b]" /></button>
                   </div>
                   
                   <div className="p-6 space-y-4">
                       {/* TYPE SELECTION */}
-                      <div className="flex gap-4 p-1 bg-slate-100 rounded-lg">
-                          <button onClick={() => { setEditingTx({...editingTx, type: 'INCOME', items: []}); setCartSelector(''); }} className={`flex-1 py-2 rounded-md font-bold text-sm ${editingTx.type === 'INCOME' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-slate-500'}`}>Entrada</button>
-                          <button onClick={() => { setEditingTx({...editingTx, type: 'EXPENSE', items: []}); setCartSelector(''); }} className={`flex-1 py-2 rounded-md font-bold text-sm ${editingTx.type === 'EXPENSE' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-slate-500'}`}>Saída</button>
+                      <div className="flex gap-4 p-1 bg-[#f0f9ff] rounded-lg">
+                          <button onClick={() => { setEditingTx({...editingTx, type: 'INCOME', items: []}); setCartSelector(''); }} className={`flex-1 py-2 rounded-md font-bold text-sm ${editingTx.type === 'INCOME' ? 'bg-[#dcfce7] text-[#166534] shadow-sm' : 'text-[#64748b]'}`}>Entrada</button>
+                          <button onClick={() => { setEditingTx({...editingTx, type: 'EXPENSE', items: []}); setCartSelector(''); }} className={`flex-1 py-2 rounded-md font-bold text-sm ${editingTx.type === 'EXPENSE' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-[#64748b]'}`}>Saída</button>
                       </div>
 
                       {/* Header Fields */}
                       <div className="grid grid-cols-2 gap-4">
                           <div>
-                              <label className="block text-xs font-bold text-slate-500 mb-1">Contato / Entidade</label>
+                              <label className="block text-xs font-bold text-[#64748b] mb-1">Contato / Entidade</label>
                               <select 
                                  value={editingTx.contactId || ''}
                                  onChange={e => setEditingTx({...editingTx, contactId: e.target.value})}
-                                 className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 text-sm"
+                                 className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
                               >
                                  <option value="">Selecione...</option>
                                  {contactOptions.map(c => (
@@ -1000,26 +1000,26 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                               </select>
                           </div>
                           <div>
-                              <label className="block text-xs font-bold text-slate-500 mb-1">Data Competência</label>
+                              <label className="block text-xs font-bold text-[#64748b] mb-1">Data Competência</label>
                               <input 
                                   type="date"
                                   value={editingTx.date}
                                   onChange={e => setEditingTx({...editingTx, date: e.target.value})}
-                                  className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                  className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                               />
                           </div>
                       </div>
 
                       {/* ITEM BUILDER (CORE) */}
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                          <label className="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1">
+                      <div className="bg-[#f0f9ff] p-4 rounded-lg border border-[#e0f2fe]">
+                          <label className="block text-xs font-bold text-[#64748b] mb-2 flex items-center gap-1">
                               <ShoppingCart size={14} /> Itens da Transação
                           </label>
                           
                           <div className="space-y-2 mb-3">
                               {/* 1. Item Selector */}
                               <select 
-                                  className="w-full p-2 border border-slate-300 rounded text-sm bg-white"
+                                  className="w-full p-2 border border-[#e0f2fe] rounded text-sm bg-white"
                                   value={cartSelector}
                                   onChange={e => {
                                       setCartSelector(e.target.value);
@@ -1066,7 +1066,7 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                   <input 
                                       type="number" 
                                       min="1" 
-                                      className="w-20 p-2 border border-slate-300 rounded text-sm bg-white"
+                                      className="w-20 p-2 border border-[#e0f2fe] rounded text-sm bg-white"
                                       value={cartQty}
                                       onChange={e => setCartQty(parseInt(e.target.value))}
                                       placeholder="Qtd"
@@ -1074,7 +1074,7 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                   <input 
                                       type="number" 
                                       placeholder="Valor Unit." 
-                                      className="flex-1 p-2 border border-slate-300 rounded text-sm"
+                                      className="flex-1 p-2 border border-[#e0f2fe] rounded text-sm"
                                       value={cartValue}
                                       onChange={e => setCartValue(e.target.value)}
                                   />
@@ -1088,12 +1088,12 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                           </div>
 
                           {/* Cart List Display */}
-                          <div className="space-y-1 max-h-40 overflow-y-auto mb-2 border-t border-slate-200 pt-2">
+                          <div className="space-y-1 max-h-40 overflow-y-auto mb-2 border-t border-[#e0f2fe] pt-2">
                               {editingTx.items && editingTx.items.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-slate-200 text-xs">
+                                  <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-[#e0f2fe] text-xs">
                                       <div className="flex flex-col">
-                                          <span className="font-bold text-slate-700">{item.quantity}x {item.name}</span>
-                                          <span className="text-[10px] text-slate-400">{item.categoryName}</span>
+                                          <span className="font-bold text-[#0a0f1e]">{item.quantity}x {item.name}</span>
+                                          <span className="text-[10px] text-[#64748b]">{item.categoryName}</span>
                                       </div>
                                       <div className="flex items-center gap-2">
                                           <span className="font-bold">R$ {item.total.toFixed(2)}</span>
@@ -1102,10 +1102,10 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                   </div>
                               ))}
                               {(!editingTx.items || editingTx.items.length === 0) && (
-                                  <p className="text-xs text-slate-400 text-center py-2 italic">Nenhum item lançado.</p>
+                                  <p className="text-xs text-[#64748b] text-center py-2 italic">Nenhum item lançado.</p>
                               )}
                           </div>
-                          <div className="text-right font-bold text-slate-800 text-lg border-t border-slate-200 pt-2">
+                          <div className="text-right font-bold text-[#0a0f1e] text-lg border-t border-[#e0f2fe] pt-2">
                               Total: {formatCurrency(editingTx.amount || 0)}
                           </div>
                       </div>
@@ -1113,11 +1113,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                       {/* Payment & Obs */}
                       <div className="grid grid-cols-2 gap-4">
                          <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Meio Pagamento</label>
+                            <label className="block text-xs font-bold text-[#64748b] mb-1">Meio Pagamento</label>
                             <select 
                                 value={editingTx.paymentMethod || 'PIX'}
                                 onChange={e => setEditingTx({...editingTx, paymentMethod: e.target.value as PaymentMethod})}
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 text-sm"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
                             >
                                 <option value="PIX">Pix</option>
                                 <option value="CREDIT_CARD">Cartão Crédito</option>
@@ -1129,11 +1129,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                             </select>
                          </div>
                          <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Conta Bancária</label>
+                            <label className="block text-xs font-bold text-[#64748b] mb-1">Conta Bancária</label>
                             <select 
                                 value={editingTx.accountId || ''}
                                 onChange={e => setEditingTx({...editingTx, accountId: e.target.value})}
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 text-sm"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
                             >
                                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                             </select>
@@ -1141,12 +1141,12 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                       </div>
 
                       <div>
-                          <label className="block text-xs font-bold text-slate-500 mb-1">Descrição / Observação</label>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Descrição / Observação</label>
                           <input 
                               type="text"
                               value={editingTx.description || ''}
                               onChange={e => setEditingTx({...editingTx, description: e.target.value})}
-                              className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                               placeholder="Detalhes opcionais..."
                           />
                       </div>
@@ -1159,16 +1159,16 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                     onChange={e => setEditingTx({...editingTx, status: e.target.checked ? 'PAID' : 'PENDING'})}
                                     className="w-5 h-5 text-blue-600 rounded"
                                 />
-                                <span className="text-sm font-bold text-slate-700">Lançamento Pago / Recebido?</span>
+                                <span className="text-sm font-bold text-[#0a0f1e]">Lançamento Pago / Recebido?</span>
                         </div>
                         {editingTx.status === 'PAID' && (
                              <div className="ml-7 mt-2 animate-in slide-in-from-top-1">
-                                  <label className="block text-xs font-bold text-slate-500 mb-1">Data do Pagamento (Baixa)</label>
+                                  <label className="block text-xs font-bold text-[#64748b] mb-1">Data do Pagamento (Baixa)</label>
                                   <input 
                                       type="date"
                                       value={editingTx.paidAt || editingTx.date}
                                       onChange={e => setEditingTx({...editingTx, paidAt: e.target.value})}
-                                      className="border border-slate-300 rounded p-1 text-sm bg-white"
+                                      className="border border-[#e0f2fe] rounded p-1 text-sm bg-white"
                                   />
                              </div>
                         )}
@@ -1176,16 +1176,16 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
 
                       {/* Recurrence UI (New Transactions Only) */}
                       {!editingTx.id && (
-                        <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mt-4">
+                        <div className="bg-[#e0f2fe] p-3 rounded-lg border border-[#e0f2fe] mt-4">
                             <div className="flex items-center gap-2">
                                 <input 
                                     type="checkbox" 
                                     id="recurrence-toggle"
                                     checked={recurrenceForm.enabled}
                                     onChange={e => setRecurrenceForm({ ...recurrenceForm, enabled: e.target.checked })}
-                                    className="w-4 h-4 text-indigo-600 rounded"
+                                    className="w-4 h-4 text-[#0284c7] rounded"
                                 />
-                                <label htmlFor="recurrence-toggle" className="text-sm font-bold text-indigo-900 cursor-pointer select-none flex items-center gap-2">
+                                <label htmlFor="recurrence-toggle" className="text-sm font-bold text-[#0a0f1e] cursor-pointer select-none flex items-center gap-2">
                                     <Repeat size={14} /> Repetir este lançamento?
                                 </label>
                             </div>
@@ -1193,11 +1193,11 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                             {recurrenceForm.enabled && (
                                 <div className="grid grid-cols-2 gap-4 mt-3 animate-in slide-in-from-top-2">
                                     <div>
-                                        <label className="block text-xs font-bold text-indigo-700 mb-1">Frequência</label>
+                                        <label className="block text-xs font-bold text-[#0369a1] mb-1">Frequência</label>
                                         <select 
                                             value={recurrenceForm.frequency}
                                             onChange={e => setRecurrenceForm({...recurrenceForm, frequency: e.target.value as any})}
-                                            className="w-full border border-indigo-200 rounded p-2 text-sm bg-white"
+                                            className="w-full border border-[#e0f2fe] rounded p-2 text-sm bg-white"
                                         >
                                             <option value="WEEKLY">Semanal</option>
                                             <option value="BIWEEKLY">Quinzenal</option>
@@ -1207,13 +1207,13 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-indigo-700 mb-1">Repetições (Vezes)</label>
+                                        <label className="block text-xs font-bold text-[#0369a1] mb-1">Repetições (Vezes)</label>
                                         <input 
                                             type="number" 
                                             min="2" max="60"
                                             value={recurrenceForm.occurrences}
                                             onChange={e => setRecurrenceForm({...recurrenceForm, occurrences: parseInt(e.target.value)})}
-                                            className="w-full border border-indigo-200 rounded p-2 text-sm bg-white"
+                                            className="w-full border border-[#e0f2fe] rounded p-2 text-sm bg-white"
                                         />
                                     </div>
                                 </div>
@@ -1222,8 +1222,8 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
                       )}
                   </div>
                   
-                  <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-                      <button onClick={() => setIsTxModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+                  <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+                      <button onClick={() => setIsTxModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
                       <button 
                           onClick={handleSaveTx} 
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20"
@@ -1240,16 +1240,16 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
                   {/* Account Modal Content */}
-                  <div className="p-6 border-b border-slate-100"><h3 className="text-lg font-bold">Nova Conta / Carteira</h3></div>
+                  <div className="p-6 border-b border-[#e0f2fe]"><h3 className="text-lg font-bold">Nova Conta / Carteira</h3></div>
                   <div className="p-6 space-y-4">
                       <input type="text" placeholder="Nome da Conta" className="w-full border rounded-lg p-2" value={editingAccount.name} onChange={e => setEditingAccount({...editingAccount, name: e.target.value})} />
                       <select className="w-full border rounded-lg p-2 bg-white" value={editingAccount.type} onChange={e => setEditingAccount({...editingAccount, type: e.target.value as any})}>
                           <option value="BANK">Conta Bancária</option><option value="CASH">Caixa Físico</option><option value="WALLET">Carteira Digital</option><option value="INVESTMENT">Aplicação</option>
                       </select>
-                      <div><label className="text-xs text-slate-500">Saldo Inicial</label><input type="number" className="w-full border rounded-lg p-2" value={editingAccount.initialBalance} disabled={!!editingAccount.id} onChange={e => setEditingAccount({...editingAccount, initialBalance: parseFloat(e.target.value)})} /></div>
-                      <div><label className="text-xs text-slate-500">Cor</label><div className="flex gap-2 mt-1">{['#3b82f6', '#10b981', '#ef4444', '#f59e0b'].map(c => (<button key={c} onClick={() => setEditingAccount({...editingAccount, color: c})} className={`w-6 h-6 rounded-full border-2 ${editingAccount.color === c ? 'border-slate-800' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></div>
+                      <div><label className="text-xs text-[#64748b]">Saldo Inicial</label><input type="number" className="w-full border rounded-lg p-2" value={editingAccount.initialBalance} disabled={!!editingAccount.id} onChange={e => setEditingAccount({...editingAccount, initialBalance: parseFloat(e.target.value)})} /></div>
+                      <div><label className="text-xs text-[#64748b]">Cor</label><div className="flex gap-2 mt-1">{['#3b82f6', '#10b981', '#ef4444', '#f59e0b'].map(c => (<button key={c} onClick={() => setEditingAccount({...editingAccount, color: c})} className={`w-6 h-6 rounded-full border-2 ${editingAccount.color === c ? 'border-[#0284c7]' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></div>
                   </div>
-                  <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsAccountModalOpen(false)} className="px-4 py-2 text-slate-600">Cancelar</button><button onClick={handleSaveAccount} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Salvar</button></div>
+                  <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsAccountModalOpen(false)} className="px-4 py-2 text-[#64748b]">Cancelar</button><button onClick={handleSaveAccount} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Salvar</button></div>
               </div>
           </div>
       )}
@@ -1258,12 +1258,12 @@ const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNaviga
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
                   {/* Category Modal Content */}
-                  <div className="p-6 border-b border-slate-100"><h3 className="text-lg font-bold">Nova Categoria</h3></div>
+                  <div className="p-6 border-b border-[#e0f2fe]"><h3 className="text-lg font-bold">Nova Categoria</h3></div>
                   <div className="p-6 space-y-4">
-                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Classificação DRE</label><select className="w-full border border-slate-300 rounded-lg p-2 text-sm bg-slate-50 text-slate-700" value={newCategory.dreClass} onChange={e => setNewCategory({...newCategory, dreClass: e.target.value as DRECategoryType, type: (['GROSS_REVENUE', 'OTHER_RESULT'].includes(e.target.value) ? 'INCOME' : 'EXPENSE') as TransactionType})}>{Object.keys(DRE_STRUCTURE_LABELS).map(key => (<option key={key} value={key}>{DRE_STRUCTURE_LABELS[key as DRECategoryType].label}</option>))}</select></div>
-                      <div><label className="block text-xs font-medium text-slate-500 mb-1">Nome da Categoria</label><input type="text" placeholder="Ex: Material de Limpeza" className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900" value={newCategory.name} onChange={e => setNewCategory({...newCategory, name: e.target.value})} /></div>
+                      <div><label className="block text-xs font-medium text-[#64748b] mb-1">Classificação DRE</label><select className="w-full border border-[#e0f2fe] rounded-lg p-2 text-sm bg-[#f0f9ff] text-[#0a0f1e]" value={newCategory.dreClass} onChange={e => setNewCategory({...newCategory, dreClass: e.target.value as DRECategoryType, type: (['GROSS_REVENUE', 'OTHER_RESULT'].includes(e.target.value) ? 'INCOME' : 'EXPENSE') as TransactionType})}>{Object.keys(DRE_STRUCTURE_LABELS).map(key => (<option key={key} value={key}>{DRE_STRUCTURE_LABELS[key as DRECategoryType].label}</option>))}</select></div>
+                      <div><label className="block text-xs font-medium text-[#64748b] mb-1">Nome da Categoria</label><input type="text" placeholder="Ex: Material de Limpeza" className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]" value={newCategory.name} onChange={e => setNewCategory({...newCategory, name: e.target.value})} /></div>
                   </div>
-                  <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg">Cancelar</button><button onClick={handleAddCategory} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Salvar</button></div>
+                  <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button><button onClick={handleAddCategory} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Salvar</button></div>
               </div>
           </div>
       )}

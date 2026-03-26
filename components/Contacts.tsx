@@ -136,8 +136,8 @@ const Contacts: React.FC = () => {
   }, [historyClient, appointments]);
 
   const getTypeLabel = (type: ContactType) => {
-      if (type === 'CLIENT') return { label: 'Cliente', color: 'bg-blue-100 text-blue-700' };
-      if (type === 'SUPPLIER') return { label: 'Fornecedor', color: 'bg-purple-100 text-purple-700' };
+      if (type === 'CLIENT') return { label: 'Cliente', color: 'bg-[#e0f2fe] text-[#0369a1]' };
+      if (type === 'SUPPLIER') return { label: 'Fornecedor', color: 'bg-[#e0f2fe] text-[#0369a1]' };
       return { label: 'Ambos', color: 'bg-green-100 text-green-700' };
   };
 
@@ -145,8 +145,8 @@ const Contacts: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Contatos Unificados</h2>
-          <p className="text-slate-500">Gestão de Clientes e Fornecedores.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Contatos Unificados</h2>
+          <p className="text-[#64748b]">Gestão de Clientes e Fornecedores.</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
@@ -158,28 +158,28 @@ const Contacts: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] p-4">
           <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 text-slate-400" size={20} />
+                  <Search className="absolute left-3 top-3 text-[#64748b]" size={20} />
                   <input 
                       type="text" 
                       placeholder="Buscar por nome ou Documento..."
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-10 pr-4 py-2 border border-[#e0f2fe] rounded-lg bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                   />
               </div>
               <div className="flex gap-2">
-                  <button onClick={() => setFilterType('ALL')} className={`px-4 py-2 rounded-lg text-sm font-medium ${filterType === 'ALL' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Todos</button>
-                  <button onClick={() => setFilterType('CLIENT')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'CLIENT' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}><Users size={16}/> Clientes</button>
-                  <button onClick={() => setFilterType('SUPPLIER')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'SUPPLIER' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}><Truck size={16}/> Fornecedores</button>
+                  <button onClick={() => setFilterType('ALL')} className={`px-4 py-2 rounded-lg text-sm font-medium ${filterType === 'ALL' ? 'bg-[#0284c7] text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}>Todos</button>
+                  <button onClick={() => setFilterType('CLIENT')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'CLIENT' ? 'bg-blue-600 text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}><Users size={16}/> Clientes</button>
+                  <button onClick={() => setFilterType('SUPPLIER')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'SUPPLIER' ? 'bg-[#0284c7] text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}><Truck size={16}/> Fornecedores</button>
               </div>
           </div>
           
           <div className="overflow-x-auto">
              <table className="w-full text-left text-sm">
-                 <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+                 <thead className="bg-[#f0f9ff] text-[#64748b] border-b border-[#e0f2fe]">
                      <tr>
                          <th className="px-6 py-3">Nome / Razão Social</th>
                          <th className="px-6 py-3">Tipo</th>
@@ -189,43 +189,43 @@ const Contacts: React.FC = () => {
                          <th className="px-6 py-3 text-right">Ações</th>
                      </tr>
                  </thead>
-                 <tbody className="divide-y divide-slate-100">
+                 <tbody className="divide-y divide-[#e0f2fe]">
                      {filteredContacts.map(contact => {
                          const typeInfo = getTypeLabel(contact.type);
                          return (
-                         <tr key={contact.id} className="hover:bg-slate-50">
-                             <td className="px-6 py-4 font-medium text-slate-800">{contact.name}</td>
+                         <tr key={contact.id} className="hover:bg-[#f0f9ff]">
+                             <td className="px-6 py-4 font-medium text-[#0a0f1e]">{contact.name}</td>
                              <td className="px-6 py-4">
                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${typeInfo.color}`}>
                                      {typeInfo.label}
                                  </span>
                              </td>
-                             <td className="px-6 py-4 text-slate-600">{contact.document}</td>
+                             <td className="px-6 py-4 text-[#64748b]">{contact.document}</td>
                              <td className="px-6 py-4">
-                                 <div className="flex flex-col text-xs text-slate-500">
+                                 <div className="flex flex-col text-xs text-[#64748b]">
                                      {contact.email && <span className="flex items-center gap-1"><Mail size={12}/> {contact.email}</span>}
                                      {contact.phone && <span className="flex items-center gap-1"><Phone size={12}/> {contact.phone}</span>}
                                  </div>
                              </td>
-                             <td className="px-6 py-4 text-slate-600 text-xs">
+                             <td className="px-6 py-4 text-[#64748b] text-xs">
                                  {contact.address.city}/{contact.address.state}
                              </td>
                              <td className="px-6 py-4 text-right flex justify-end gap-2">
                                  <button 
                                     onClick={() => handleOpenHistory(contact)} 
-                                    className="text-slate-400 hover:text-indigo-600 p-1"
+                                    className="text-[#64748b] hover:text-[#0284c7] p-1"
                                     title="Histórico de Atendimentos"
                                  >
                                      <History size={18} />
                                  </button>
-                                 <button onClick={() => handleOpenModal(contact)} className="text-slate-400 hover:text-blue-600 p-1"><Edit2 size={18} /></button>
-                                 <button onClick={() => deleteContact(contact.id)} className="text-slate-400 hover:text-red-600 p-1"><Trash2 size={18} /></button>
+                                 <button onClick={() => handleOpenModal(contact)} className="text-[#64748b] hover:text-blue-600 p-1"><Edit2 size={18} /></button>
+                                 <button onClick={() => deleteContact(contact.id)} className="text-[#64748b] hover:text-red-600 p-1"><Trash2 size={18} /></button>
                              </td>
                          </tr>
                      )})}
                      {filteredContacts.length === 0 && (
                          <tr>
-                             <td colSpan={6} className="text-center py-8 text-slate-400">Nenhum contato encontrado.</td>
+                             <td colSpan={6} className="text-center py-8 text-[#64748b]">Nenhum contato encontrado.</td>
                          </tr>
                      )}
                  </tbody>
@@ -237,20 +237,20 @@ const Contacts: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
               <h3 className="text-xl font-bold flex items-center gap-2">
                   <FileText size={20} className="text-blue-600" /> 
                   {editingContact.id ? 'Editar Contato' : 'Cadastrar Contato'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)}><X size={24} className="text-slate-400" /></button>
+              <button onClick={() => setIsModalOpen(false)}><X size={24} className="text-[#64748b]" /></button>
             </div>
             
             <div className="p-6 space-y-6">
                 {/* Dados Básicos */}
                 <div>
-                    <h4 className="font-semibold text-slate-700 mb-3 border-b pb-1">Dados Cadastrais</h4>
+                    <h4 className="font-semibold text-[#0a0f1e] mb-3 border-b pb-1">Dados Cadastrais</h4>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Contato</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Tipo de Contato</label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="contactType" checked={editingContact.type === 'CLIENT'} onChange={() => setEditingContact({...editingContact, type: 'CLIENT'})} />
@@ -268,37 +268,37 @@ const Contacts: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Nome Completo / Razão Social</label>
+                            <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Nome Completo / Razão Social</label>
                             <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.name || ''}
                                 onChange={e => setEditingContact({...editingContact, name: e.target.value})}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">CPF / CNPJ</label>
+                            <label className="block text-sm font-medium text-[#0a0f1e] mb-1">CPF / CNPJ</label>
                             <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.document || ''}
                                 onChange={e => setEditingContact({...editingContact, document: e.target.value})}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                            <label className="block text-sm font-medium text-[#0a0f1e] mb-1">E-mail</label>
                             <input 
                                 type="email" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.email || ''}
                                 onChange={e => setEditingContact({...editingContact, email: e.target.value})}
                             />
                         </div>
                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Telefone/Celular</label>
+                            <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Telefone/Celular</label>
                             <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.phone || ''}
                                 onChange={e => setEditingContact({...editingContact, phone: e.target.value})}
                             />
@@ -308,18 +308,18 @@ const Contacts: React.FC = () => {
 
                 {/* Endereço */}
                 <div>
-                    <h4 className="font-semibold text-slate-700 mb-3 border-b pb-1 flex items-center gap-2">
+                    <h4 className="font-semibold text-[#0a0f1e] mb-3 border-b pb-1 flex items-center gap-2">
                         <MapPin size={16} /> Endereço Fiscal
                     </h4>
                     <div className="grid grid-cols-6 gap-4">
                         <div className="col-span-2 relative">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">CEP</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">CEP</label>
                              <div className="relative">
                                 <input 
                                     type="text" 
                                     maxLength={9}
                                     placeholder="00000-000"
-                                    className="w-full border border-slate-300 rounded-lg p-2 pr-8 bg-white text-slate-900"
+                                    className="w-full border border-[#e0f2fe] rounded-lg p-2 pr-8 bg-white text-[#0a0f1e]"
                                     value={editingContact.address?.zipCode || ''}
                                     onChange={handleCepChange}
                                 />
@@ -331,47 +331,47 @@ const Contacts: React.FC = () => {
                              </div>
                         </div>
                         <div className="col-span-3">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">Logradouro</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Logradouro</label>
                              <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.address?.street || ''}
                                 onChange={e => setEditingContact({...editingContact, address: {...editingContact.address!, street: e.target.value}})}
                             />
                         </div>
                         <div className="col-span-1">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">Número</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Número</label>
                              <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.address?.number || ''}
                                 onChange={e => setEditingContact({...editingContact, address: {...editingContact.address!, number: e.target.value}})}
                             />
                         </div>
                         <div className="col-span-2">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">Bairro</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Bairro</label>
                              <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.address?.neighborhood || ''}
                                 onChange={e => setEditingContact({...editingContact, address: {...editingContact.address!, neighborhood: e.target.value}})}
                             />
                         </div>
                         <div className="col-span-3">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">Cidade</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Cidade</label>
                              <input 
                                 type="text" 
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]"
                                 value={editingContact.address?.city || ''}
                                 onChange={e => setEditingContact({...editingContact, address: {...editingContact.address!, city: e.target.value}})}
                             />
                         </div>
                         <div className="col-span-1">
-                             <label className="block text-sm font-medium text-slate-700 mb-1">UF</label>
+                             <label className="block text-sm font-medium text-[#0a0f1e] mb-1">UF</label>
                              <input 
                                 type="text" 
                                 maxLength={2}
-                                className="w-full border border-slate-300 rounded-lg p-2 bg-white text-slate-900 uppercase"
+                                className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] uppercase"
                                 value={editingContact.address?.state || ''}
                                 onChange={e => setEditingContact({...editingContact, address: {...editingContact.address!, state: e.target.value}})}
                             />
@@ -380,8 +380,8 @@ const Contacts: React.FC = () => {
                 </div>
             </div>
 
-            <div className="p-6 border-t border-slate-100 flex justify-end space-x-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+            <div className="p-6 border-t border-[#e0f2fe] flex justify-end space-x-3">
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
               <button 
                 onClick={handleSave} 
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -398,7 +398,7 @@ const Contacts: React.FC = () => {
       {isHistoryOpen && historyClient && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
-                  <div className="p-6 bg-slate-800 text-white rounded-t-xl flex justify-between items-center shrink-0">
+                  <div className="p-6 bg-[#0284c7] text-white rounded-t-xl flex justify-between items-center shrink-0">
                       <div>
                           <h3 className="text-xl font-bold flex items-center gap-2">
                               <History size={24} /> Histórico do Cliente
@@ -408,9 +408,9 @@ const Contacts: React.FC = () => {
                       <button onClick={() => setIsHistoryOpen(false)} className="hover:bg-white/20 p-1 rounded"><X size={24} /></button>
                   </div>
 
-                  <div className="p-6 bg-slate-50 flex-1 overflow-y-auto">
+                  <div className="p-6 bg-[#f0f9ff] flex-1 overflow-y-auto">
                       {clientHistory.length === 0 ? (
-                          <div className="text-center py-12 text-slate-400">
+                          <div className="text-center py-12 text-[#64748b]">
                               <Calendar size={48} className="mx-auto mb-4 opacity-50" />
                               <p>Nenhum histórico de atendimento encontrado para este cliente.</p>
                           </div>
@@ -420,7 +420,7 @@ const Contacts: React.FC = () => {
                                   const profName = professionals.find(p => p.id === appt.professionalId)?.name || 'Profissional N/D';
                                   
                                   return (
-                                      <div key={appt.id} className="bg-white rounded-lg border border-slate-200 shadow-sm p-4 relative">
+                                      <div key={appt.id} className="bg-white rounded-lg border border-[#e0f2fe] shadow-sm p-4 relative">
                                           <div className="absolute top-4 right-4">
                                               <span className={`text-[10px] font-bold px-2 py-1 rounded border ${
                                                   appt.status === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' :
@@ -432,12 +432,12 @@ const Contacts: React.FC = () => {
                                           </div>
 
                                           <div className="flex items-center gap-3 mb-3">
-                                              <div className="bg-slate-100 p-2 rounded text-slate-600">
+                                              <div className="bg-[#f0f9ff] p-2 rounded text-[#64748b]">
                                                   <Calendar size={20} />
                                               </div>
                                               <div>
-                                                  <p className="font-bold text-slate-800">{new Date(appt.date).toLocaleDateString()}</p>
-                                                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                                                  <p className="font-bold text-[#0a0f1e]">{new Date(appt.date).toLocaleDateString()}</p>
+                                                  <p className="text-xs text-[#64748b] flex items-center gap-1">
                                                       <User size={12} /> {profName}
                                                   </p>
                                               </div>
@@ -445,7 +445,7 @@ const Contacts: React.FC = () => {
 
                                           {/* Notes / Prescriptions / Complaints */}
                                           {appt.notes && (
-                                              <div className="mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-sm text-slate-700">
+                                              <div className="mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-sm text-[#0a0f1e]">
                                                   <p className="font-bold text-yellow-800 text-xs mb-1 flex items-center gap-1">
                                                       <ClipboardList size={12} /> Queixa / Receita / Observações:
                                                   </p>
@@ -455,16 +455,16 @@ const Contacts: React.FC = () => {
 
                                           {/* Items / Services Done */}
                                           <div className="space-y-2">
-                                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Serviços & Produtos</p>
+                                              <p className="text-xs font-bold text-[#64748b] uppercase tracking-wide">Serviços & Produtos</p>
                                               {appt.items?.map((item, idx) => {
                                                   const itemDef = items.find(i => i.id === item.itemId);
                                                   return (
-                                                      <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-50 pb-1 last:border-0">
+                                                      <div key={idx} className="flex justify-between items-center text-sm border-b border-[#e0f2fe] pb-1 last:border-0">
                                                           <div className="flex items-center gap-2">
-                                                              <Package size={14} className="text-slate-400" />
-                                                              <span className="text-slate-700">{itemDef?.name || 'Item desconhecido'}</span>
+                                                              <Package size={14} className="text-[#64748b]" />
+                                                              <span className="text-[#0a0f1e]">{itemDef?.name || 'Item desconhecido'}</span>
                                                           </div>
-                                                          <span className="text-slate-500 text-xs">{item.quantity} {itemDef?.unit}</span>
+                                                          <span className="text-[#64748b] text-xs">{item.quantity} {itemDef?.unit}</span>
                                                       </div>
                                                   );
                                               })}
