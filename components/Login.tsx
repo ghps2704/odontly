@@ -83,11 +83,26 @@ const Login: React.FC = () => {
         zIndex: 1,
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
           <Logo size="lg" variant="light" />
           <p style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>
             Feito para dentistas
           </p>
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: 18 }}>
+          <a
+            href="/"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#0284c7',
+              textDecoration: 'none',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#0369a1'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#0284c7'; }}
+          >
+            ← Voltar para a página inicial
+          </a>
         </div>
 
         {error && (
