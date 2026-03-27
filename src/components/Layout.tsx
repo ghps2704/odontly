@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { useNexus } from '../contexts/NexusContext';
-import { ViewState } from '../types';
+import { useNexus } from '@/contexts';
+import { ViewState } from '@/types';
 import {
   LayoutDashboard,
   Package,
@@ -16,15 +16,17 @@ import {
   FileText,
   LogOut
 } from 'lucide-react';
-import Dashboard from '../pages/Dashboard';
-import Catalog from '../pages/Catalog';
-import Calendar from '../pages/Calendar';
-import Finance from '../pages/Finance';
-import SettingsView from '../pages/Settings';
-import AICopilot from '../pages/AICopilot';
-import Contacts from '../pages/Contacts';
-import Fiscal from '../pages/Fiscal';
-import Logo from './ui/logo';
+import {
+  Dashboard,
+  Catalog,
+  Calendar,
+  Finance,
+  Settings as SettingsView,
+  AICopilot,
+  Contacts,
+  Fiscal,
+} from '@/pages';
+import Logo from '@/components/ui/logo';
 
 const Layout: React.FC = () => {
   const { settings, verifyPin, logout, user } = useNexus();

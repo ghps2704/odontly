@@ -1,8 +1,8 @@
 
 import React, { useMemo } from 'react';
-import { useNexus } from '../contexts/NexusContext';
+import { useNexus } from '@/contexts/NexusContext';
 import { ArrowUpRight, AlertTriangle, TrendingDown, Clock, BarChart3, TrendingUp, DollarSign, PieChart as PieIcon, Activity, UserPlus, Users, Wallet, Trophy, ShoppingBag, Gauge, Heart } from 'lucide-react';
-import { ViewState } from '../types';
+import { ViewState } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Area, AreaChart, Treemap, ComposedChart, Line } from 'recharts';
 
 const Dashboard: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNavigate }) => {

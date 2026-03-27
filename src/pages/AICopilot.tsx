@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, User } from 'lucide-react';
-import { useNexus } from '../contexts/NexusContext';
-import { generateAIResponse } from '../integrations/gemini';
+import { useNexus } from '@/contexts/NexusContext';
+import { generateAIResponse } from '@/integrations/gemini';
 
 interface Message {
   id: string;

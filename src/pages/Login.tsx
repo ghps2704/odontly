@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { useNexus } from '../contexts/NexusContext';
+import { useNexus } from '@/contexts/NexusContext';
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
-import Logo from '../components/ui/logo';
+import Logo from '@/components/ui/logo';
 
 const Login: React.FC = () => {
   const { login } = useNexus();

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useNexus } from '../contexts/NexusContext';
-import { Contact, ContactType } from '../types';
+import { useNexus } from '@/contexts/NexusContext';
+import { Contact, ContactType } from '@/types';
 import { Plus, Search, MapPin, Phone, Mail, FileText, Edit2, Trash2, X, Users, Truck, Loader2, History, Calendar, User, Package, ClipboardList } from 'lucide-react';
 
 const Contacts: React.FC = () => {

@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { useNexus } from '../contexts/NexusContext';
-import { Item, ItemType, BOMItem } from '../types';
+import { useNexus } from '@/contexts/NexusContext';
+import { Item, ItemType, BOMItem } from '@/types';
 import { Plus, Trash2, Edit2, Archive, DollarSign, Package, Layers, X, AlertTriangle, TrendingUp, TrendingDown, Search, ExternalLink, Calendar, Clock, BarChart3, ArrowDownToLine, ArrowUpDown, FileText, Settings2 } from 'lucide-react';
-import { searchSuppliers } from '../integrations/gemini';
+import { searchSuppliers } from '@/integrations/gemini';
 
 const Catalog: React.FC = () => {
   const { items, addItem, deleteItem, updateItem, addStockEntry, settings } = useNexus();

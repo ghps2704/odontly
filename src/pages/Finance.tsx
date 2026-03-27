@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { useNexus } from '../contexts/NexusContext';
-import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, ViewState, TransactionItem } from '../types';
+import { useNexus } from '@/contexts/NexusContext';
+import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, ViewState, TransactionItem } from '@/types';
 import { 
     Plus, Search, ArrowUpCircle, ArrowDownCircle, 
     CheckCircle, XCircle, Trash2, Calendar as CalendarIcon, Wallet,

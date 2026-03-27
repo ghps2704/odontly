@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useNexus } from '../contexts/NexusContext';
-import { Appointment, AppointmentStatus, BOMItem, PaymentMethod, SaleItem } from '../types';
+import { useNexus } from '@/contexts/NexusContext';
+import { Appointment, AppointmentStatus, BOMItem, PaymentMethod, SaleItem } from '@/types';
 import { Plus, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, User, Search, ChevronDown, UserCog, AlertTriangle, Trash2, AlertOctagon, FileText, Wallet, ShoppingBag, CreditCard, Box, Tag, Percent, ThumbsUp, Star, Briefcase } from 'lucide-react';
 
 const DAYS_OF_WEEK = [
