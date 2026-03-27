@@ -4,10 +4,17 @@ import AuthRoute from '@/components/AuthRoute';
 import PinRoute from '@/components/PinRoute';
 import Layout from '@/components/Layout';
 import { Login, Dashboard, Catalog, Calendar, Contacts, Finance, Fiscal, Settings } from '@/pages';
+import { useNexus } from '@/contexts';
+
+const GuestRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  const { user, isLoading } = useNexus();
+  if (isLoading) return null;
+  return user ? <Navigate to="/dashboard" replace /> : element;
+};
 
 const AppRoutes: React.FC = () => (
   <Routes>
-    <Route path="/login" element={<Login />} />
+    <Route path="/login" element={<GuestRoute element={<Login />} />} />
 
     <Route element={<AuthRoute />}>
       <Route element={<Layout />}>

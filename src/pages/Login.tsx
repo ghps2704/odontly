@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNexus } from '@/contexts/NexusContext';
 import { Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
 import Logo from '@/components/ui/logo';
 
 const Login: React.FC = () => {
   const { login } = useNexus();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +19,11 @@ const Login: React.FC = () => {
     setIsLoading(true);
     try {
       const success = await login(email, password);
-      if (!success) setError('Acesso negado. Verifique seu e-mail e senha.');
+      if (success) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        setError('Acesso negado. Verifique seu e-mail e senha.');
+      }
     } catch {
       setError('Erro de conexão. Verifique sua internet.');
     } finally {

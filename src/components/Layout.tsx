@@ -77,15 +77,14 @@ const Layout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const closeSidebar = () => setIsSidebarOpen(false);
 
-  const handleLogout = () => {
-    if (window.confirm('Deseja realmente sair?')) {
-      sessionStorage.removeItem('odontly_pin_verified');
-      logout();
-      navigate('/login', { replace: true });
-    }
+  const handleLogout = async () => {
+    sessionStorage.removeItem('odontly_pin_verified');
+    await logout();
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -135,7 +134,7 @@ const Layout: React.FC = () => {
               <div style={{ fontSize: 11, color: '#64748b' }}>Administrador</div>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               title="Sair"
               style={{ color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 6, display: 'flex', alignItems: 'center' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#f0f9ff'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; }}
@@ -186,7 +185,7 @@ const Layout: React.FC = () => {
             </nav>
             <div style={{ paddingTop: 12, borderTop: '1px solid #1e293b' }}>
               <button
-                onClick={handleLogout}
+                onClick={() => setIsLogoutModalOpen(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '8px 4px' }}
               >
                 <LogOut size={16} />
@@ -222,6 +221,64 @@ const Layout: React.FC = () => {
       </div>
 
       {isAIChatOpen && <AICopilot onClose={() => setIsAIChatOpen(false)} />}
+
+      {isLogoutModalOpen && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(10,15,30,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 100, padding: 16, backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div style={{
+            background: '#ffffff', borderRadius: 14, width: '100%', maxWidth: 360,
+            padding: 28, textAlign: 'center',
+            border: '0.5px solid #e0f2fe', boxShadow: '0 20px 60px rgba(10,15,30,0.15)',
+          }}>
+            <div style={{
+              width: 44, height: 44, background: '#fee2e2', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px', color: '#dc2626',
+            }}>
+              <LogOut size={20} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#0a0f1e', marginBottom: 6 }}>
+              Sair do sistema
+            </h3>
+            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 24, lineHeight: 1.5 }}>
+              Tem certeza que deseja encerrar a sessão?
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setIsLogoutModalOpen(false)}
+                style={{
+                  flex: 1, padding: '9px 16px', fontSize: 13, fontWeight: 500,
+                  color: '#64748b', background: 'transparent',
+                  border: '1.5px solid #e0f2fe', borderRadius: 8, cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#f0f9ff')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleLogout}
+                style={{
+                  flex: 1, padding: '9px 16px', fontSize: 13, fontWeight: 500,
+                  color: '#ffffff', background: '#dc2626',
+                  border: 'none', borderRadius: 8, cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#b91c1c')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#dc2626')}
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
