@@ -258,12 +258,13 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = async () => {
+    setUser(null);
+    clearData();
     try {
       await supabase.auth.signOut();
     } catch (e) {
       console.error("Erro no logout:", e);
     }
-    // onAuthStateChange SIGNED_OUT cuida de setUser(null) e clearData()
   };
 
   // --- DATABASE HELPERS ---
