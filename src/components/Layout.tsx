@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNexus } from '../store/NexusContext';
+import { useNexus } from '../contexts/NexusContext';
 import { ViewState } from '../types';
 import {
   LayoutDashboard,
@@ -16,14 +16,14 @@ import {
   FileText,
   LogOut
 } from 'lucide-react';
-import Dashboard from './Dashboard';
-import Catalog from './Catalog';
-import Calendar from './Calendar';
-import Finance from './Finance';
-import SettingsView from './Settings';
-import AICopilot from './AICopilot';
-import Contacts from './Contacts';
-import Fiscal from './Fiscal';
+import Dashboard from '../pages/Dashboard';
+import Catalog from '../pages/Catalog';
+import Calendar from '../pages/Calendar';
+import Finance from '../pages/Finance';
+import SettingsView from '../pages/Settings';
+import AICopilot from '../pages/AICopilot';
+import Contacts from '../pages/Contacts';
+import Fiscal from '../pages/Fiscal';
 import Logo from './ui/logo';
 
 const Layout: React.FC = () => {

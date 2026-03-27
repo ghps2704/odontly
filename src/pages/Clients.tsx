@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNexus } from '../store/NexusContext';
+import { useNexus } from '../contexts/NexusContext';
 import { Contact } from '../types';
 import { Plus, Search, MapPin, Phone, Mail, FileText, Edit2, Trash2, X } from 'lucide-react';
 

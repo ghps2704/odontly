@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNexus } from '../store/NexusContext';
+import { useNexus } from '../contexts/NexusContext';
 import { Save, Lock, Palette, Building, Briefcase, FileBadge, Scale, BarChart3, Target } from 'lucide-react';
 import { TaxRegime } from '../types';
 

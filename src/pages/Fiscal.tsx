@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { useNexus } from '../store/NexusContext';
+import { useNexus } from '../contexts/NexusContext';
 import { Invoice, Contact, Item } from '../types';
 import { FileText, CheckCircle, AlertCircle, Copy, Send, Check, BarChart3, Target, AlertTriangle, Eye, ClipboardCheck, XCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';

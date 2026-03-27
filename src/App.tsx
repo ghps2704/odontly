@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { NexusProvider, useNexus } from './store/NexusContext';
+import { NexusProvider, useNexus } from './contexts/NexusContext';
 import Layout from './components/Layout';
-import Login from './components/Login';
+import Login from './pages/Login';
 
 const Main: React.FC = () => {
   const { user, isLoading } = useNexus();

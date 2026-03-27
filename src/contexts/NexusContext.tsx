@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Item, Transaction, Appointment, Account, AppSettings, BOMItem, Contact, Invoice, Professional, FinancialCategory, PaymentMethod, TransactionItem } from '../types';
-import { supabase } from '../services/supabase';
+import { supabase } from '../integrations/supabase';
 
 interface UserSession {
     email: string;

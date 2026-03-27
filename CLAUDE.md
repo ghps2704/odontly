@@ -52,31 +52,50 @@ GEMINI_API_KEY=[gemini-key]
 
 ```
 /
-├── App.tsx                  # Roteamento principal e controle de auth
-├── index.tsx                # Entry point React DOM
-├── index.html               # Template HTML com config Tailwind
-├── types.ts                 # Todos os tipos TypeScript do domínio
-├── vite.config.ts           # Config Vite (porta 3000, alias @/*)
+├── app.html                 # HTML entry point da aplicação React
+├── index.html               # Landing page (marketing)
+├── landing.html             # Versão alternativa da landing
+├── vite.config.ts           # Config Vite (porta 3000, alias @/* → src/)
+├── tsconfig.json
 │
-├── components/
-│   ├── Layout.tsx           # Shell com navegação lateral
-│   ├── Dashboard.tsx        # KPIs e gráficos financeiros
-│   ├── Calendar.tsx         # Agendamentos
-│   ├── Catalog.tsx          # Produtos, serviços e insumos
-│   ├── Contacts.tsx         # Clientes e fornecedores
-│   ├── Finance.tsx          # Lançamentos e DRE
-│   ├── Fiscal.tsx           # Notas fiscais e tributação
-│   ├── Settings.tsx         # Configurações (protegido por PIN)
-│   ├── Login.tsx            # Tela de autenticação
-│   ├── AICopilot.tsx        # Interface do copiloto Gemini
-│   └── ui/logo.tsx          # Logo do sistema
+├── public/
+│   ├── favicon.svg
+│   └── sitemap.xml
 │
-├── services/
-│   ├── supabase.ts          # Cliente Supabase configurado
-│   └── geminiService.ts     # Integração com Google Gemini AI
-│
-└── store/
-    └── NexusContext.tsx     # Context global — toda a state da app
+└── src/
+    ├── App.tsx              # Roteamento principal e controle de auth
+    ├── main.tsx             # Entry point React DOM
+    │
+    ├── types/
+    │   └── index.ts         # Todos os tipos TypeScript do domínio
+    │
+    ├── contexts/
+    │   └── NexusContext.tsx # Context global — toda a state da app
+    │
+    ├── components/
+    │   ├── Layout.tsx       # Shell com navegação lateral
+    │   └── ui/
+    │       └── logo.tsx     # Logo do sistema
+    │
+    ├── pages/
+    │   ├── Dashboard.tsx    # KPIs e gráficos financeiros
+    │   ├── Calendar.tsx     # Agendamentos
+    │   ├── Catalog.tsx      # Produtos, serviços e insumos
+    │   ├── Contacts.tsx     # Clientes e fornecedores
+    │   ├── Finance.tsx      # Lançamentos e DRE
+    │   ├── Fiscal.tsx       # Notas fiscais e tributação
+    │   ├── Settings.tsx     # Configurações (protegido por PIN)
+    │   ├── Login.tsx        # Tela de autenticação
+    │   └── AICopilot.tsx    # Interface do copiloto Gemini
+    │
+    ├── integrations/
+    │   ├── supabase.ts      # Cliente Supabase configurado
+    │   ├── gemini.ts        # Integração com Google Gemini AI
+    │   └── firebase.ts      # Configuração Firebase
+    │
+    ├── hooks/               # Custom React hooks
+    ├── lib/                 # Utilitários e helpers
+    └── data/                # Dados estáticos / seeds
 ```
 
 ---
@@ -128,8 +147,8 @@ Todas isoladas por `user_id`:
 
 ## Convenções
 
-- Alias `@/*` aponta para a raiz do projeto
+- Alias `@/*` aponta para `src/`
 - Componentes em PascalCase, arquivos `.tsx`
-- Tipos centralizados em `types.ts` — não dispersar por componentes
+- Tipos centralizados em `src/types/index.ts` — não dispersar por componentes
 - Tailwind via CDN: não há arquivo de config — classes direto no JSX
 - Tema de cores: azul/ciano (`#0284c7`) com variantes `ice-blue`, `polar-white`, `deep-navy`
