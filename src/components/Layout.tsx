@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useNexus } from '@/contexts';
-import { ViewState } from '@/types';
 import {
   LayoutDashboard,
   Package,
@@ -11,92 +10,82 @@ import {
   Menu,
   X,
   Sparkles,
-  Lock,
   Users,
   FileText,
-  LogOut
+  LogOut,
 } from 'lucide-react';
-import {
-  Dashboard,
-  Catalog,
-  Calendar,
-  Finance,
-  Settings as SettingsView,
-  AICopilot,
-  Contacts,
-  Fiscal,
-} from '@/pages';
 import Logo from '@/components/ui/logo';
+import { AICopilot } from '@/pages';
+
+const PAGE_LABELS: Record<string, string> = {
+  '/dashboard': 'Painel de Controle',
+  '/contacts':  'Contatos',
+  '/catalog':   'Catálogo',
+  '/calendar':  'Agenda',
+  '/fiscal':    'Gestão Fiscal',
+  '/finance':   'Financeiro',
+  '/settings':  'Configurações',
+};
+
+const NAV_ITEMS = [
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Visão Geral' },
+  { to: '/contacts',  icon: Users,           label: 'Contatos' },
+  { to: '/catalog',   icon: Package,         label: 'Catálogo' },
+  { to: '/calendar',  icon: CalendarDays,    label: 'Agenda' },
+  { to: '/fiscal',    icon: FileText,        label: 'Gestão Fiscal' },
+  { to: '/finance',   icon: CircleDollarSign,label: 'Financeiro' },
+];
+
+interface NavItemProps {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  onClose: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, onClose }) => (
+  <NavLink
+    to={to}
+    onClick={onClose}
+    style={({ isActive }) => ({
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      width: '100%',
+      padding: '7px 12px',
+      borderRadius: 7,
+      fontSize: 13,
+      fontWeight: isActive ? 500 : 400,
+      color: isActive ? '#ffffff' : '#64748b',
+      background: isActive ? '#0284c7' : 'transparent',
+      textDecoration: 'none',
+      transition: 'background 0.15s, color 0.15s',
+    })}
+  >
+    {({ isActive }) => (
+      <>
+        <Icon size={16} style={{ color: isActive ? '#ffffff' : '#334155', flexShrink: 0 }} />
+        <span>{label}</span>
+      </>
+    )}
+  </NavLink>
+);
 
 const Layout: React.FC = () => {
-  const { settings, verifyPin, logout, user } = useNexus();
-  const [currentView, setCurrentView] = useState<ViewState>('DASHBOARD');
+  const { settings, logout, user } = useNexus();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAIChatOpen, setIsAIChatOpen] = useState(false);
 
-  const [isPinModalOpen, setIsPinModalOpen] = useState(false);
-  const [pinInput, setPinInput] = useState('');
-  const [pinError, setPinError] = useState(false);
-  const [pendingView, setPendingView] = useState<ViewState | null>(null);
-
-  const handleViewChange = (view: ViewState) => {
-    if (view === 'FINANCE' || view === 'SETTINGS') {
-      setPendingView(view);
-      setPinInput('');
-      setPinError(false);
-      setIsPinModalOpen(true);
-    } else {
-      setCurrentView(view);
-      setIsSidebarOpen(false);
-    }
-  };
-
-  const handlePinSubmit = () => {
-    if (verifyPin(pinInput)) {
-      if (pendingView) setCurrentView(pendingView);
-      setIsPinModalOpen(false);
-      setIsSidebarOpen(false);
-    } else {
-      setPinError(true);
-    }
-  };
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   const handleLogout = () => {
-    if (window.confirm('Deseja realmente sair?')) logout();
-  };
-
-  const pageLabels: Record<ViewState, string> = {
-    DASHBOARD: 'Painel de Controle',
-    CONTACTS: 'Contatos',
-    CATALOG: 'Catálogo',
-    CALENDAR: 'Agenda',
-    FISCAL: 'Gestão Fiscal',
-    FINANCE: 'Financeiro',
-    SETTINGS: 'Configurações',
-  };
-
-  const NavItem = ({ view, icon: Icon, label }: { view: ViewState; icon: any; label: string }) => {
-    const active = currentView === view;
-    return (
-      <button
-        onClick={() => handleViewChange(view)}
-        className="flex items-center w-full transition-all"
-        style={{
-          gap: 10,
-          padding: '7px 12px',
-          borderRadius: 7,
-          fontSize: 13,
-          fontWeight: active ? 500 : 400,
-          color: active ? '#ffffff' : '#64748b',
-          background: active ? '#0284c7' : 'transparent',
-        }}
-        onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; if (!active) (e.currentTarget as HTMLButtonElement).style.color = '#f0f9ff'; }}
-        onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; if (!active) (e.currentTarget as HTMLButtonElement).style.color = '#64748b'; }}
-      >
-        <Icon size={16} style={{ color: active ? '#ffffff' : '#334155', flexShrink: 0 }} />
-        <span>{label}</span>
-      </button>
-    );
+    if (window.confirm('Deseja realmente sair?')) {
+      sessionStorage.removeItem('odontly_pin_verified');
+      logout();
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
@@ -107,32 +96,23 @@ const Layout: React.FC = () => {
         className="hidden md:flex flex-col"
         style={{ width: 240, background: '#0a0f1e', flexShrink: 0, height: '100%', zIndex: 10 }}
       >
-        {/* Logo area */}
         <div style={{ padding: '20px 20px 12px' }}>
           <Logo size="md" variant="dark" />
         </div>
 
-        {/* Company info */}
         <div style={{ padding: '0 20px 16px', borderBottom: '1px solid #1e293b' }}>
           <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500, marginBottom: 4 }}>Clínica</div>
           <div style={{ fontSize: 13, fontWeight: 500, color: '#f0f9ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{settings.companyName}</div>
           <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</div>
         </div>
 
-        {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 12px', display: 'flex', flexDirection: 'column', gap: 2, overflowY: 'auto' }}>
-          <NavItem view="DASHBOARD" icon={LayoutDashboard} label="Visão Geral" />
-          <NavItem view="CONTACTS" icon={Users} label="Contatos" />
-          <NavItem view="CATALOG" icon={Package} label="Catálogo" />
-          <NavItem view="CALENDAR" icon={CalendarDays} label="Agenda" />
-          <NavItem view="FISCAL" icon={FileText} label="Gestão Fiscal" />
-          <NavItem view="FINANCE" icon={CircleDollarSign} label="Financeiro" />
+          {NAV_ITEMS.map(({ to, icon, label }) => <NavItem key={to} to={to} icon={icon} label={label} onClose={closeSidebar} />)}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #1e293b' }}>
-            <NavItem view="SETTINGS" icon={Settings} label="Configurações" />
+            <NavItem to="/settings" icon={Settings} label="Configurações" onClose={closeSidebar} />
           </div>
         </nav>
 
-        {/* Bottom: AI + Logout */}
         <div style={{ padding: '12px 12px', borderTop: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <button
             onClick={() => setIsAIChatOpen(!isAIChatOpen)}
@@ -149,7 +129,6 @@ const Layout: React.FC = () => {
             <span>Odontly AI</span>
           </button>
 
-          {/* User section */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 4px 0' }}>
             <div style={{ overflow: 'hidden' }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: '#f0f9ff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{user?.name || settings.companyName}</div>
@@ -202,13 +181,8 @@ const Layout: React.FC = () => {
               </button>
             </div>
             <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <NavItem view="DASHBOARD" icon={LayoutDashboard} label="Visão Geral" />
-              <NavItem view="CONTACTS" icon={Users} label="Contatos" />
-              <NavItem view="CATALOG" icon={Package} label="Catálogo" />
-              <NavItem view="CALENDAR" icon={CalendarDays} label="Agenda" />
-              <NavItem view="FISCAL" icon={FileText} label="Gestão Fiscal" />
-              <NavItem view="FINANCE" icon={CircleDollarSign} label="Financeiro" />
-              <NavItem view="SETTINGS" icon={Settings} label="Configurações" />
+              {NAV_ITEMS.map(({ to, icon, label }) => <NavItem key={to} to={to} icon={icon} label={label} onClose={closeSidebar} />)}
+              <NavItem to="/settings" icon={Settings} label="Configurações" onClose={closeSidebar} />
             </nav>
             <div style={{ paddingTop: 12, borderTop: '1px solid #1e293b' }}>
               <button
@@ -223,89 +197,8 @@ const Layout: React.FC = () => {
         </div>
       )}
 
-      {/* PIN Modal */}
-      {isPinModalOpen && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(10,15,30,0.6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 50, padding: 16, backdropFilter: 'blur(4px)',
-          }}
-        >
-          <div style={{
-            background: '#ffffff', borderRadius: 14, width: '100%', maxWidth: 360,
-            padding: 28, textAlign: 'center',
-            border: '0.5px solid #e0f2fe', boxShadow: '0 20px 60px rgba(10,15,30,0.15)',
-          }}>
-            <div style={{
-              width: 44, height: 44, background: '#e0f2fe', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px', color: '#0284c7',
-            }}>
-              <Lock size={20} />
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: '#0a0f1e', marginBottom: 6 }}>Área Restrita</h3>
-            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20, lineHeight: 1.5 }}>
-              Digite o PIN do administrador para continuar.
-            </p>
-
-            <input
-              type="password"
-              style={{
-                width: '100%', textAlign: 'center', fontSize: 22, letterSpacing: '0.3em',
-                border: pinError ? '1.5px solid #dc2626' : '1.5px solid #e0f2fe',
-                borderRadius: 8, padding: '10px 14px', marginBottom: 12,
-                fontFamily: 'monospace', outline: 'none', color: '#0a0f1e',
-                background: '#f0f9ff', boxSizing: 'border-box',
-                boxShadow: pinError ? '0 0 0 3px rgba(220,38,38,0.15)' : undefined,
-              }}
-              maxLength={4}
-              value={pinInput}
-              autoFocus
-              placeholder="0000"
-              onChange={e => { setPinInput(e.target.value); setPinError(false); }}
-              onKeyDown={e => e.key === 'Enter' && handlePinSubmit()}
-            />
-
-            {pinError && (
-              <p style={{ color: '#dc2626', fontSize: 13, fontWeight: 500, marginBottom: 12 }}>PIN incorreto.</p>
-            )}
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setIsPinModalOpen(false)}
-                style={{
-                  flex: 1, padding: '9px 16px', fontSize: 13, fontWeight: 500,
-                  color: '#64748b', background: 'transparent',
-                  border: '1.5px solid #e0f2fe', borderRadius: 8, cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#f0f9ff')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handlePinSubmit}
-                style={{
-                  flex: 1, padding: '9px 16px', fontSize: 13, fontWeight: 500,
-                  color: '#ffffff', background: '#0284c7',
-                  border: 'none', borderRadius: 8, cursor: 'pointer',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#0369a1')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#0284c7')}
-              >
-                Acessar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-        {/* Top Bar */}
         <header
           className="hidden md:flex"
           style={{
@@ -313,7 +206,9 @@ const Layout: React.FC = () => {
             alignItems: 'center', padding: '0 28px', flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: 16, fontWeight: 500, color: '#0a0f1e' }}>{pageLabels[currentView]}</span>
+          <span style={{ fontSize: 16, fontWeight: 500, color: '#0a0f1e' }}>
+            {PAGE_LABELS[location.pathname] ?? ''}
+          </span>
         </header>
 
         <main
@@ -321,13 +216,7 @@ const Layout: React.FC = () => {
           className="md:pt-6"
         >
           <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-            {currentView === 'DASHBOARD' && <Dashboard onNavigate={setCurrentView} />}
-            {currentView === 'CONTACTS' && <Contacts />}
-            {currentView === 'CATALOG' && <Catalog />}
-            {currentView === 'CALENDAR' && <Calendar />}
-            {currentView === 'FISCAL' && <Fiscal />}
-            {currentView === 'FINANCE' && <Finance onNavigate={setCurrentView} />}
-            {currentView === 'SETTINGS' && <SettingsView />}
+            <Outlet />
           </div>
         </main>
       </div>

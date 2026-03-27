@@ -1,11 +1,12 @@
 
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNexus } from '@/contexts/NexusContext';
 import { ArrowUpRight, AlertTriangle, TrendingDown, Clock, BarChart3, TrendingUp, DollarSign, PieChart as PieIcon, Activity, UserPlus, Users, Wallet, Trophy, ShoppingBag, Gauge, Heart } from 'lucide-react';
-import { ViewState } from '@/types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Area, AreaChart, Treemap, ComposedChart, Line } from 'recharts';
 
-const Dashboard: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNavigate }) => {
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { transactions, items, accounts, appointments, contacts, settings, professionals } = useNexus();
 
   const revenueHistory = useMemo(() => {
@@ -217,16 +218,16 @@ const Dashboard: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNavi
 
       {/* Top KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div onClick={() => onNavigate('FINANCE')} style={{ cursor: 'pointer' }}>
+        <div onClick={() => navigate('/finance')} style={{ cursor: 'pointer' }}>
           <MetricCard title="Receita Acumulada" value={`R$ ${revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} subtext="Regime de caixa" icon={ArrowUpRight} accent="#0284c7" />
         </div>
-        <div onClick={() => onNavigate('FINANCE')} style={{ cursor: 'pointer' }}>
+        <div onClick={() => navigate('/finance')} style={{ cursor: 'pointer' }}>
           <MetricCard title="Lucro Líquido" value={`R$ ${profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} subtext={`Margem: ${revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : 0}%`} icon={TrendingUp} accent="#16a34a" />
         </div>
-        <div onClick={() => onNavigate('CATALOG')} style={{ cursor: 'pointer' }}>
+        <div onClick={() => navigate('/catalog')} style={{ cursor: 'pointer' }}>
           <MetricCard title="Estoque Crítico" value={lowStockItems.length} subtext="Itens abaixo do mínimo" icon={AlertTriangle} accent="#dc2626" />
         </div>
-        <div onClick={() => onNavigate('FINANCE')} style={{ cursor: 'pointer' }}>
+        <div onClick={() => navigate('/finance')} style={{ cursor: 'pointer' }}>
           <MetricCard title="Saldo em Contas" value={`R$ ${accounts.reduce((a, b) => a + b.balance, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} subtext="Tesouraria consolidada" icon={Wallet} accent="#0284c7" />
         </div>
       </div>

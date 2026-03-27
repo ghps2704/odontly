@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { useNexus } from '@/contexts/NexusContext';
-import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, ViewState, TransactionItem } from '@/types';
+import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, TransactionItem } from '@/types';
 import { 
     Plus, Search, ArrowUpCircle, ArrowDownCircle, 
     CheckCircle, XCircle, Trash2, Calendar as CalendarIcon, Wallet,
@@ -26,7 +26,7 @@ const DRE_STRUCTURE_LABELS: Record<DRECategoryType, { label: string, color: stri
     'INCOME_TAX': { label: 'Tributos (IRPJ/CSLL)', color: 'text-red-700' }
 };
 
-const Finance: React.FC<{ onNavigate: (view: ViewState) => void }> = ({ onNavigate }) => {
+const Finance: React.FC = () => {
   const { 
       transactions, accounts, categories, contacts, appointments, items,
       addTransaction, updateTransaction, deleteTransaction, 

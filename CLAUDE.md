@@ -2,7 +2,7 @@
 
 ## O que é este projeto
 
-**Odontly** (package name: `sozio-erp`) é um sistema ERP completo voltado para clínicas odontológicas e PMEs. Inclui:
+**Odontly** (package name: `odontly`) é um sistema ERP completo voltado para clínicas odontológicas e PMEs. Inclui:
 - Agendamentos e controle de profissionais
 - Catálogo de produtos, serviços e insumos com BOM (Bill of Materials)
 - Gestão financeira com DRE e fluxo de caixa

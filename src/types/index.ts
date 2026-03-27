@@ -241,5 +241,3 @@ export interface AppSettings {
   // --- CUSTOMIZATION ---
   customCategories?: FinancialCategory[];
 }
-
-export type ViewState = 'DASHBOARD' | 'CATALOG' | 'CONTACTS' | 'CALENDAR' | 'FISCAL' | 'FINANCE' | 'SETTINGS';

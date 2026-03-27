@@ -2,7 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Item, Transaction, Appointment, Account } from "../types";
 
 const SYSTEM_INSTRUCTION = `
-Você é o Sozio AI, um Co-piloto de ERP inteligente e sofisticado para Pequenas e Médias Empresas.
+Você é o Odontly AI, um Co-piloto de ERP inteligente e sofisticado para Pequenas e Médias Empresas.
 Você tem acesso aos dados financeiros, de estoque e agenda da empresa.
 
 CAPACIDADES:
@@ -13,7 +13,7 @@ CAPACIDADES:
 
 Regras:
 - Seja conciso, profissional e utilize um tom de consultor de negócios experiente.
-- Sempre se refira ao sistema como "Sozio ERP".
+- Sempre se refira ao sistema como "Odontly ERP".
 - Formate valores monetários em BRL (R$).
 - Ao procurar fornecedores, liste 3 opções com preços, se disponível.
 `;
@@ -61,10 +61,10 @@ export const generateAIResponse = async (query: string, data: ContextData): Prom
       }
     });
     
-    return response.text || "Não consegui analisar os dados no ecossistema Sozio no momento.";
+    return response.text || "Não consegui analisar os dados no ecossistema Odontly no momento.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Desculpe, ocorreu um erro ao processar sua solicitação com a IA do Sozio.";
+    return "Desculpe, ocorreu um erro ao processar sua solicitação com a IA do Odontly.";
   }
 };
 
@@ -78,7 +78,7 @@ export const searchSuppliers = async (itemName: string): Promise<string> => {
             contents: `Encontre fornecedores e preços atuais no Brasil para o insumo: "${itemName}". Liste 3 opções com nome da loja, preço aproximado e se há frete grátis. Formate como uma lista HTML simples <ul><li>...</li></ul>.`,
             config: {
                 tools: [{ googleSearch: {} }],
-                systemInstruction: "Você é um assistente de compras do Sozio ERP. Retorne apenas a lista HTML de fornecedores encontrados via busca."
+                systemInstruction: "Você é um assistente de compras do Odontly ERP. Retorne apenas a lista HTML de fornecedores encontrados via busca."
             }
         });
         return response.text || "Nenhum fornecedor encontrado no momento.";
