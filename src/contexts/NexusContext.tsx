@@ -260,6 +260,11 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const logout = async () => {
     setUser(null);
     clearData();
+    // Remover todas as chaves do Supabase do localStorage diretamente,
+    // sem depender do SDK (garantia contra falhas de rede ou versão)
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('sb-'))
+      .forEach(k => localStorage.removeItem(k));
     try {
       await supabase.auth.signOut({ scope: 'local' });
     } catch (e) {
