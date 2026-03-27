@@ -261,7 +261,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setUser(null);
     clearData();
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'local' });
     } catch (e) {
       console.error("Erro no logout:", e);
     }
