@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/dashboard",  "destination": "/app.html" },
+    { "source": "/catalog",    "destination": "/app.html" },
+    { "source": "/contacts",   "destination": "/app.html" },
+    { "source": "/calendar",   "destination": "/app.html" },
+    { "source": "/fiscal",     "destination": "/app.html" },
+    { "source": "/finance",    "destination": "/app.html" },
+    { "source": "/settings",   "destination": "/app.html" },
+    { "source": "/login",      "destination": "/app.html" }
+  ]
+}
