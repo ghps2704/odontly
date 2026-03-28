@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNexus } from '@/contexts/NexusContext';
 import { Appointment, AppointmentStatus, BOMItem, PaymentMethod, SaleItem } from '@/types';
-import { Plus, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, User, Search, ChevronDown, UserCog, AlertTriangle, Trash2, AlertOctagon, FileText, Wallet, ShoppingBag, CreditCard, Box, Tag, Percent, ThumbsUp, Star, Briefcase } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, User, Search, ChevronDown, UserCog, AlertTriangle, Trash2, AlertOctagon, FileText, Wallet, ShoppingBag, CreditCard, Box, Tag, Percent, ThumbsUp, Star, Briefcase, Sparkles, Loader2, ClipboardList } from 'lucide-react';
+import { structureClinicalRecord } from '@/integrations/gemini';
 
 const DAYS_OF_WEEK = [
     { id: 0, label: 'D', name: 'Domingo' },
@@ -29,6 +30,11 @@ const Calendar: React.FC = () => {
   
   // RF032 - NPS
   const [npsScore, setNpsScore] = useState<number>(0);
+
+  // AI Clinical Record State
+  const [clinicalTranscript, setClinicalTranscript] = useState('');
+  const [structuredRecord, setStructuredRecord] = useState('');
+  const [isStructuring, setIsStructuring] = useState(false);
   
   // Discount State
   const [discountType, setDiscountType] = useState<'FIXED' | 'PERCENTAGE'>('FIXED');
@@ -295,7 +301,24 @@ const Calendar: React.FC = () => {
           setCompletionBOM([]);
           setDiscountValue(0);
           setNpsScore(0);
+          setClinicalTranscript('');
+          setStructuredRecord('');
       }
+  };
+
+  const handleStructureRecord = async () => {
+      if (!clinicalTranscript.trim() || !completingAppt) return;
+      const firstServiceItem = completingAppt.items
+        ?.map(si => items.find(i => i.id === si.itemId))
+        .find(i => i?.type === 'SERVICE');
+      setIsStructuring(true);
+      const result = await structureClinicalRecord(
+        clinicalTranscript,
+        completingAppt.clientName,
+        firstServiceItem?.name
+      );
+      setStructuredRecord(result);
+      setIsStructuring(false);
   };
 
   const handleAddMaterialToCompletion = () => {
@@ -333,8 +356,8 @@ const Calendar: React.FC = () => {
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-[#0a0f1e]">Agenda Operacional</h2>
-          <p className="text-[#64748b]">Controle atendimentos e baixa automática de estoque.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Agenda</h2>
+          <p className="text-[#64748b]">Consultas, procedimentos e baixa automática de insumos.</p>
         </div>
         <div className="flex gap-3">
              <button 
@@ -350,7 +373,7 @@ const Calendar: React.FC = () => {
                 style={{ backgroundColor: settings.primaryColor }}
             >
                 <Plus size={18} />
-                <span>Novo Agendamento/Venda</span>
+                <span>Nova Consulta</span>
             </button>
         </div>
       </div>
@@ -467,7 +490,7 @@ const Calendar: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-visible max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
-              <h3 className="text-xl font-bold">Novo Agendamento / Venda</h3>
+              <h3 className="text-xl font-bold">Nova Consulta / Procedimento</h3>
               <button onClick={closeApptModal}><XCircle size={24} className="text-[#64748b]" /></button>
             </div>
             
@@ -528,7 +551,7 @@ const Calendar: React.FC = () => {
                         )}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Profissional / Vendedor</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Dentista / Profissional</label>
                         <select 
                         value={newAppt.professionalId || ''} 
                         onChange={e => {
@@ -639,10 +662,10 @@ const Calendar: React.FC = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Observações (Opcional)</label>
-                    <textarea 
+                    <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Queixa Principal / Observações</label>
+                    <textarea
                         rows={2}
-                        placeholder="Detalhes adicionais..."
+                        placeholder="Ex: dor no dente 36, retorno pós-extração, consulta de rotina..."
                         value={newAppt.notes || ''}
                         onChange={e => setNewAppt({...newAppt, notes: e.target.value})}
                         className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
@@ -658,7 +681,7 @@ const Calendar: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-[#e0f2fe] disabled:cursor-not-allowed"
                 style={{ backgroundColor: (newAppt.clientId && newAppt.items?.length && newAppt.professionalId && !conflictError) ? settings.primaryColor : undefined }}
               >
-                Agendar / Vender
+                Confirmar Agendamento
               </button>
             </div>
           </div>
@@ -697,6 +720,42 @@ const Calendar: React.FC = () => {
                                      {score}
                                  </button>
                              ))}
+                         </div>
+                     </div>
+
+                     {/* AI Clinical Record Section */}
+                     <div className="border border-[#e0f2fe] rounded-lg overflow-hidden">
+                         <div className="bg-[#0a0f1e] px-4 py-3 flex items-center gap-2">
+                             <div className="w-6 h-6 bg-[#0284c7] rounded flex items-center justify-center">
+                                 <Sparkles size={12} style={{ color: '#fff' }} />
+                             </div>
+                             <span className="text-xs font-bold text-[#e0f2fe] uppercase tracking-wider">Prontuário com IA</span>
+                             <span className="ml-auto text-[10px] text-[#64748b]">Odontly AI</span>
+                         </div>
+                         <div className="p-4 bg-[#f0f9ff] space-y-3">
+                             <textarea
+                                 rows={3}
+                                 placeholder="Descreva o atendimento em voz livre... Ex: 'Paciente com dor no dente 36, cárie profunda, realizei anestesia com mepivacaína, remoção de cárie e restauração provisória com coltosol, próxima consulta para finalizar.'"
+                                 className="w-full border border-[#e0f2fe] rounded-lg p-3 text-sm bg-white text-[#0a0f1e] resize-none focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+                                 value={clinicalTranscript}
+                                 onChange={e => setClinicalTranscript(e.target.value)}
+                             />
+                             <button
+                                 onClick={handleStructureRecord}
+                                 disabled={!clinicalTranscript.trim() || isStructuring}
+                                 className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                 style={{ background: '#0a0f1e', color: '#e0f2fe' }}
+                             >
+                                 {isStructuring
+                                   ? <><Loader2 size={14} className="animate-spin" /> Estruturando prontuário...</>
+                                   : <><ClipboardList size={14} /> Estruturar Prontuário com IA</>
+                                 }
+                             </button>
+                             {structuredRecord && (
+                                 <div className="bg-white border border-[#e0f2fe] rounded-lg p-3 text-xs text-[#374151] leading-relaxed whitespace-pre-wrap font-mono max-h-48 overflow-y-auto">
+                                     {structuredRecord}
+                                 </div>
+                             )}
                          </div>
                      </div>
 

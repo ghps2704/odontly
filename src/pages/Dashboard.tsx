@@ -1,13 +1,29 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNexus } from '@/contexts/NexusContext';
-import { ArrowUpRight, AlertTriangle, TrendingDown, Clock, BarChart3, TrendingUp, DollarSign, PieChart as PieIcon, Activity, UserPlus, Users, Wallet, Trophy, ShoppingBag, Gauge, Heart } from 'lucide-react';
+import { ArrowUpRight, AlertTriangle, TrendingDown, Clock, BarChart3, TrendingUp, DollarSign, PieChart as PieIcon, Activity, UserPlus, Users, Wallet, Trophy, ShoppingBag, Gauge, Heart, Sparkles, Loader2, UserX, CalendarX } from 'lucide-react';
+import { generateWeeklyInsight } from '@/integrations/gemini';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Area, AreaChart, Treemap, ComposedChart, Line } from 'recharts';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { transactions, items, accounts, appointments, contacts, settings, professionals } = useNexus();
+
+  const [weeklyInsight, setWeeklyInsight] = useState<string | null>(null);
+  const [insightLoading, setInsightLoading] = useState(true);
+
+  useEffect(() => {
+    if (appointments.length === 0 && transactions.length === 0) {
+      setInsightLoading(false);
+      return;
+    }
+    setInsightLoading(true);
+    generateWeeklyInsight({ transactions, appointments, accounts, contacts })
+      .then(text => setWeeklyInsight(text))
+      .finally(() => setInsightLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const revenueHistory = useMemo(() => {
     const data = [];
@@ -153,6 +169,28 @@ const Dashboard: React.FC = () => {
     return { occupancyRate, avgNps, totalWasteValue };
   }, [appointments, professionals, items]);
 
+  // ── DENTAL-SPECIFIC KPIs ─────────────────────────────────────────
+  const dentalKpis = useMemo(() => {
+    const total = appointments.length;
+    const cancelled = appointments.filter(a => a.status === 'CANCELLED').length;
+    const noShowRate = total > 0 ? (cancelled / total) * 100 : 0;
+
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const recentClientIds = new Set(
+      appointments.filter(a => new Date(a.date) > ninetyDaysAgo).map(a => a.clientId)
+    );
+    const inactivePatients = contacts.filter(c =>
+      (c.type === 'CLIENT' || c.type === 'BOTH') && !recentClientIds.has(c.id)
+    ).length;
+
+    const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
+    const pendingIncome = transactions.filter(t => t.type === 'INCOME' && t.status === 'PENDING').reduce((acc, t) => acc + t.amount, 0);
+    const inadimplenciaRate = totalIncome > 0 ? (pendingIncome / totalIncome) * 100 : 0;
+
+    return { noShowRate, inactivePatients, inadimplenciaRate, pendingIncome };
+  }, [appointments, contacts, transactions]);
+
   const revenue = transactions.filter(t => t.type === 'INCOME' && t.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0);
   const profit = revenue - transactions.filter(t => t.type === 'EXPENSE' && t.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0);
   const lowStockItems = items.filter(i => i.type !== 'SERVICE' && i.stock <= i.minStock);
@@ -216,6 +254,37 @@ const Dashboard: React.FC = () => {
         <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Visão geral da operação da sua clínica.</p>
       </div>
 
+      {/* AI Weekly Insight Banner */}
+      {(insightLoading || weeklyInsight) && (
+        <div style={{
+          background: 'linear-gradient(135deg, #0a0f1e 0%, #0c1a35 100%)',
+          borderRadius: 12,
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+          border: '0.5px solid #1e3a5f',
+        }}>
+          <div style={{
+            width: 32, height: 32, background: '#0284c7', borderRadius: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
+          }}>
+            {insightLoading
+              ? <Loader2 size={15} style={{ color: '#fff', animation: 'spin 1s linear infinite' }} />
+              : <Sparkles size={15} style={{ color: '#fff' }} />
+            }
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#38bdf8', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 4 }}>
+              Odontly AI — Insight desta semana
+            </p>
+            <p style={{ fontSize: 13, color: '#e0f2fe', lineHeight: 1.6 }}>
+              {insightLoading ? 'Analisando os dados da sua clínica...' : weeklyInsight}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <div onClick={() => navigate('/finance')} style={{ cursor: 'pointer' }}>
@@ -229,6 +298,67 @@ const Dashboard: React.FC = () => {
         </div>
         <div onClick={() => navigate('/finance')} style={{ cursor: 'pointer' }}>
           <MetricCard title="Saldo em Contas" value={`R$ ${accounts.reduce((a, b) => a + b.balance, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} subtext="Tesouraria consolidada" icon={Wallet} accent="#0284c7" />
+        </div>
+      </div>
+
+      {/* Dental KPIs — Indicadores Odontológicos */}
+      <div>
+        <h3 style={sectionTitle}>
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, background: '#e0f2fe', borderRadius: 6 }}>
+            <Heart size={13} style={{ color: '#0284c7' }} />
+          </span>
+          Indicadores Odontológicos
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {/* No-show rate */}
+          <div style={{
+            ...surfaceCard,
+            borderLeft: `3px solid ${dentalKpis.noShowRate > 25 ? '#dc2626' : dentalKpis.noShowRate > 15 ? '#f59e0b' : '#16a34a'}`,
+            paddingLeft: 17, display: 'flex', flexDirection: 'column', gap: 4,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <p style={{ fontSize: 12, color: '#64748b' }}>Taxa de Faltas</p>
+              <div style={{ padding: 6, background: dentalKpis.noShowRate > 25 ? '#fee2e2' : dentalKpis.noShowRate > 15 ? '#fef9c3' : '#dcfce7', borderRadius: 8 }}>
+                <CalendarX size={16} style={{ color: dentalKpis.noShowRate > 25 ? '#dc2626' : dentalKpis.noShowRate > 15 ? '#d97706' : '#16a34a' }} />
+              </div>
+            </div>
+            <h3 style={{ fontSize: 26, fontWeight: 600, color: '#0a0f1e', lineHeight: 1.1 }}>{dentalKpis.noShowRate.toFixed(1)}%</h3>
+            <p style={{ fontSize: 11, color: dentalKpis.noShowRate > 25 ? '#dc2626' : dentalKpis.noShowRate > 15 ? '#d97706' : '#64748b', fontWeight: dentalKpis.noShowRate > 15 ? 600 : 400 }}>
+              {dentalKpis.noShowRate > 25 ? '⚠ Crítico — benchmark: < 15%' : dentalKpis.noShowRate > 15 ? '⚠ Atenção — benchmark: < 15%' : '✓ Dentro do benchmark (< 15%)'}
+            </p>
+          </div>
+
+          {/* Inactive patients */}
+          <div style={{
+            ...surfaceCard,
+            borderLeft: `3px solid ${dentalKpis.inactivePatients > 20 ? '#f59e0b' : '#0284c7'}`,
+            paddingLeft: 17, display: 'flex', flexDirection: 'column', gap: 4,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <p style={{ fontSize: 12, color: '#64748b' }}>Pacientes Inativos</p>
+              <div style={{ padding: 6, background: '#e0f2fe', borderRadius: 8 }}>
+                <UserX size={16} style={{ color: '#0284c7' }} />
+              </div>
+            </div>
+            <h3 style={{ fontSize: 26, fontWeight: 600, color: '#0a0f1e', lineHeight: 1.1 }}>{dentalKpis.inactivePatients}</h3>
+            <p style={{ fontSize: 11, color: '#64748b' }}>Sem consulta há mais de 90 dias</p>
+          </div>
+
+          {/* Inadimplência */}
+          <div style={{
+            ...surfaceCard,
+            borderLeft: `3px solid ${dentalKpis.inadimplenciaRate > 15 ? '#dc2626' : '#16a34a'}`,
+            paddingLeft: 17, display: 'flex', flexDirection: 'column', gap: 4,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <p style={{ fontSize: 12, color: '#64748b' }}>Inadimplência</p>
+              <div style={{ padding: 6, background: dentalKpis.inadimplenciaRate > 15 ? '#fee2e2' : '#dcfce7', borderRadius: 8 }}>
+                <AlertTriangle size={16} style={{ color: dentalKpis.inadimplenciaRate > 15 ? '#dc2626' : '#16a34a' }} />
+              </div>
+            </div>
+            <h3 style={{ fontSize: 26, fontWeight: 600, color: '#0a0f1e', lineHeight: 1.1 }}>{dentalKpis.inadimplenciaRate.toFixed(1)}%</h3>
+            <p style={{ fontSize: 11, color: '#64748b' }}>R$ {dentalKpis.pendingIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} em aberto</p>
+          </div>
         </div>
       </div>
 

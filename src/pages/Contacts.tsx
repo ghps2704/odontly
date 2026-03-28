@@ -1,15 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useNexus } from '@/contexts/NexusContext';
 import { Contact, ContactType } from '@/types';
-import { Plus, Search, MapPin, Phone, Mail, FileText, Edit2, Trash2, X, Users, Truck, Loader2, History, Calendar, User, Package, ClipboardList } from 'lucide-react';
+import { Plus, Search, MapPin, Phone, Mail, FileText, Edit2, Trash2, X, Users, Truck, Loader2, History, Calendar, User, Package, ClipboardList, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
+import { classifyPatientRisk } from '@/integrations/gemini';
 
 const Contacts: React.FC = () => {
-  const { contacts, addContact, updateContact, deleteContact, settings, appointments, items, professionals } = useNexus();
+  const { contacts, addContact, updateContact, deleteContact, settings, appointments, items, professionals, transactions } = useNexus();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // History Modal State
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyClient, setHistoryClient] = useState<Contact | null>(null);
+
+  // AI Risk State
+  const [riskResult, setRiskResult] = useState<{ level: 'low' | 'medium' | 'high'; reason: string; recommendation: string } | null>(null);
+  const [riskLoading, setRiskLoading] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<ContactType | 'ALL'>('ALL');
@@ -33,8 +38,19 @@ const Contacts: React.FC = () => {
   };
 
   const handleOpenHistory = (contact: Contact) => {
-      setHistoryClient(contact);
-      setIsHistoryOpen(true);
+    setHistoryClient(contact);
+    setRiskResult(null);
+    setIsHistoryOpen(true);
+
+    if (contact.type === 'CLIENT' || contact.type === 'BOTH') {
+      const clientTxs = transactions.filter(t => t.contactId === contact.id);
+      if (clientTxs.length > 0) {
+        setRiskLoading(true);
+        classifyPatientRisk(contact.name, clientTxs)
+          .then(result => setRiskResult(result))
+          .finally(() => setRiskLoading(false));
+      }
+    }
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,25 +152,25 @@ const Contacts: React.FC = () => {
   }, [historyClient, appointments]);
 
   const getTypeLabel = (type: ContactType) => {
-      if (type === 'CLIENT') return { label: 'Cliente', color: 'bg-[#e0f2fe] text-[#0369a1]' };
+      if (type === 'CLIENT') return { label: 'Paciente', color: 'bg-[#e0f2fe] text-[#0369a1]' };
       if (type === 'SUPPLIER') return { label: 'Fornecedor', color: 'bg-[#e0f2fe] text-[#0369a1]' };
-      return { label: 'Ambos', color: 'bg-green-100 text-green-700' };
+      return { label: 'Paciente & Fornecedor', color: 'bg-green-100 text-green-700' };
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-[#0a0f1e]">Contatos Unificados</h2>
-          <p className="text-[#64748b]">Gestão de Clientes e Fornecedores.</p>
+          <h2 className="text-2xl font-bold text-[#0a0f1e]">Pacientes & Fornecedores</h2>
+          <p className="text-[#64748b]">Histórico de pacientes, anamnese e gestão de fornecedores.</p>
         </div>
-        <button 
+        <button
           onClick={() => handleOpenModal()}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors"
           style={{ backgroundColor: settings.primaryColor }}
         >
           <Plus size={18} />
-          <span>Novo Contato</span>
+          <span>Novo Cadastro</span>
         </button>
       </div>
 
@@ -162,9 +178,9 @@ const Contacts: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="relative flex-1">
                   <Search className="absolute left-3 top-3 text-[#64748b]" size={20} />
-                  <input 
-                      type="text" 
-                      placeholder="Buscar por nome ou Documento..."
+                  <input
+                      type="text"
+                      placeholder="Buscar paciente ou fornecedor por nome, CPF/CNPJ..."
                       className="w-full pl-10 pr-4 py-2 border border-[#e0f2fe] rounded-lg bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -172,7 +188,7 @@ const Contacts: React.FC = () => {
               </div>
               <div className="flex gap-2">
                   <button onClick={() => setFilterType('ALL')} className={`px-4 py-2 rounded-lg text-sm font-medium ${filterType === 'ALL' ? 'bg-[#0284c7] text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}>Todos</button>
-                  <button onClick={() => setFilterType('CLIENT')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'CLIENT' ? 'bg-blue-600 text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}><Users size={16}/> Clientes</button>
+                  <button onClick={() => setFilterType('CLIENT')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'CLIENT' ? 'bg-blue-600 text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}><Users size={16}/> Pacientes</button>
                   <button onClick={() => setFilterType('SUPPLIER')} className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${filterType === 'SUPPLIER' ? 'bg-[#0284c7] text-white' : 'bg-[#f0f9ff] text-[#64748b] hover:bg-[#e0f2fe]'}`}><Truck size={16}/> Fornecedores</button>
               </div>
           </div>
@@ -240,7 +256,7 @@ const Contacts: React.FC = () => {
             <div className="p-6 border-b border-[#e0f2fe] flex justify-between items-center">
               <h3 className="text-xl font-bold flex items-center gap-2">
                   <FileText size={20} className="text-blue-600" /> 
-                  {editingContact.id ? 'Editar Contato' : 'Cadastrar Contato'}
+                  {editingContact.id ? 'Editar Cadastro' : editingContact.type === 'SUPPLIER' ? 'Cadastrar Fornecedor' : 'Cadastrar Paciente'}
               </h3>
               <button onClick={() => setIsModalOpen(false)}><X size={24} className="text-[#64748b]" /></button>
             </div>
@@ -250,11 +266,11 @@ const Contacts: React.FC = () => {
                 <div>
                     <h4 className="font-semibold text-[#0a0f1e] mb-3 border-b pb-1">Dados Cadastrais</h4>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Tipo de Contato</label>
+                        <label className="block text-sm font-medium text-[#0a0f1e] mb-1">Tipo de Cadastro</label>
                         <div className="flex gap-4">
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="contactType" checked={editingContact.type === 'CLIENT'} onChange={() => setEditingContact({...editingContact, type: 'CLIENT'})} />
-                                <span>Cliente</span>
+                                <span>Paciente</span>
                             </label>
                             <label className="flex items-center gap-2">
                                 <input type="radio" name="contactType" checked={editingContact.type === 'SUPPLIER'} onChange={() => setEditingContact({...editingContact, type: 'SUPPLIER'})} />
@@ -387,7 +403,7 @@ const Contacts: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 style={{ backgroundColor: settings.primaryColor }}
               >
-                Salvar Contato
+                Salvar
               </button>
             </div>
           </div>
@@ -398,14 +414,42 @@ const Contacts: React.FC = () => {
       {isHistoryOpen && historyClient && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
-                  <div className="p-6 bg-[#0284c7] text-white rounded-t-xl flex justify-between items-center shrink-0">
-                      <div>
+                  <div className="p-6 bg-[#0284c7] text-white rounded-t-xl flex justify-between items-start shrink-0">
+                      <div className="flex-1">
                           <h3 className="text-xl font-bold flex items-center gap-2">
-                              <History size={24} /> Histórico do Cliente
+                              <History size={24} /> Prontuário & Histórico
                           </h3>
                           <p className="opacity-80 text-sm mt-1">{historyClient.name}</p>
+
+                          {/* AI Risk Badge */}
+                          {(riskLoading || riskResult) && (
+                            <div className="mt-3 flex items-start gap-2">
+                              {riskLoading ? (
+                                <span className="flex items-center gap-2 bg-white/10 text-white text-xs px-3 py-1.5 rounded-full">
+                                  <Loader2 size={12} className="animate-spin" /> Analisando risco financeiro...
+                                </span>
+                              ) : riskResult && (
+                                <div className={`flex items-start gap-2 text-xs px-3 py-2 rounded-lg max-w-sm ${
+                                  riskResult.level === 'high' ? 'bg-red-500/20 border border-red-300/30' :
+                                  riskResult.level === 'medium' ? 'bg-yellow-400/20 border border-yellow-200/30' :
+                                  'bg-green-400/20 border border-green-200/30'
+                                }`}>
+                                  {riskResult.level === 'high' ? <ShieldX size={14} className="shrink-0 mt-0.5 text-red-200" /> :
+                                   riskResult.level === 'medium' ? <ShieldAlert size={14} className="shrink-0 mt-0.5 text-yellow-200" /> :
+                                   <ShieldCheck size={14} className="shrink-0 mt-0.5 text-green-200" />}
+                                  <div>
+                                    <span className="font-bold uppercase tracking-wide">
+                                      Risco {riskResult.level === 'high' ? 'Alto' : riskResult.level === 'medium' ? 'Médio' : 'Baixo'}
+                                    </span>
+                                    <span className="opacity-80"> — {riskResult.reason}</span>
+                                    <p className="mt-0.5 opacity-70">{riskResult.recommendation}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                       </div>
-                      <button onClick={() => setIsHistoryOpen(false)} className="hover:bg-white/20 p-1 rounded"><X size={24} /></button>
+                      <button onClick={() => setIsHistoryOpen(false)} className="hover:bg-white/20 p-1 rounded ml-4"><X size={24} /></button>
                   </div>
 
                   <div className="p-6 bg-[#f0f9ff] flex-1 overflow-y-auto">

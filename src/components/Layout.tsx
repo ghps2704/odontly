@@ -18,9 +18,9 @@ import Logo from '@/components/ui/logo';
 import { AICopilot } from '@/pages';
 
 const PAGE_LABELS: Record<string, string> = {
-  '/dashboard': 'Painel de Controle',
-  '/contacts':  'Contatos',
-  '/catalog':   'Catálogo',
+  '/dashboard': 'Visão Geral',
+  '/contacts':  'Pacientes & Fornecedores',
+  '/catalog':   'Catálogo de Insumos & Serviços',
   '/calendar':  'Agenda',
   '/fiscal':    'Gestão Fiscal',
   '/finance':   'Financeiro',
@@ -29,8 +29,8 @@ const PAGE_LABELS: Record<string, string> = {
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Visão Geral' },
-  { to: '/contacts',  icon: Users,           label: 'Contatos' },
-  { to: '/catalog',   icon: Package,         label: 'Catálogo' },
+  { to: '/contacts',  icon: Users,           label: 'Pacientes' },
+  { to: '/catalog',   icon: Package,         label: 'Insumos & Serviços' },
   { to: '/calendar',  icon: CalendarDays,    label: 'Agenda' },
   { to: '/fiscal',    icon: FileText,        label: 'Gestão Fiscal' },
   { to: '/finance',   icon: CircleDollarSign,label: 'Financeiro' },

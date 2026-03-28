@@ -12,9 +12,9 @@ interface Message {
 }
 
 const AICopilot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { items, transactions, appointments, accounts, settings } = useNexus();
+  const { items, transactions, appointments, accounts, contacts, settings } = useNexus();
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', sender: 'ai', text: `Olá! Sou o Odontly AI. Como posso ajudar a gerir a ${settings.companyName} hoje?`, timestamp: new Date() }
+    { id: '1', sender: 'ai', text: `Olá! Sou o Odontly AI, seu co-piloto odontológico. Posso analisar faltas, inadimplência, procedimentos mais rentáveis e muito mais. O que deseja saber sobre a ${settings.companyName} hoje?`, timestamp: new Date() }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,12 +31,13 @@ const AICopilot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setInput('');
     setIsLoading(true);
     const contextData = {
-      items: items.map(i => ({ name: i.name, stock: i.stock, cost: i.cost, price: i.price, margin: i.desiredMargin })),
-      transactions: transactions.slice(0, 50).map(t => ({ date: t.date, amount: t.amount, type: t.type, category: t.category })),
-      appointments: appointments.slice(0, 20).map(a => ({ client: a.clientName, date: a.date, itemsCount: a.items?.length || 0, status: a.status })),
-      accounts: accounts.map(a => ({ name: a.name, balance: a.balance })),
+      items,
+      transactions: transactions.slice(0, 100),
+      appointments,
+      accounts,
+      contacts,
     };
-    const responseText = await generateAIResponse(userMsg.text, contextData as any);
+    const responseText = await generateAIResponse(userMsg.text, contextData);
     setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'ai', text: responseText, timestamp: new Date() }]);
     setIsLoading(false);
   };
@@ -136,8 +137,8 @@ const AICopilot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <Sparkles size={9} style={{ color: '#ffffff' }} />
         </div>
         <p style={{ fontSize: 11, color: '#374151', lineHeight: 1.5, flex: 1 }}>
-          <span style={{ fontWeight: 600, color: '#0284c7' }}>Insight Odontly</span> — Pergunte sobre estoque, finanças ou agenda da clínica.{' '}
-          <span style={{ color: '#0284c7', fontWeight: 500, cursor: 'pointer' }}>Explorar →</span>
+          <span style={{ fontWeight: 600, color: '#0284c7' }}>Sugestões:</span>{' '}
+          "Qual taxa de faltas esta semana?" · "Quais pacientes inativos?" · "Serviço mais rentável?"
         </p>
       </div>
 
@@ -152,7 +153,7 @@ const AICopilot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               color: '#0a0f1e', background: '#ffffff', fontFamily: 'Inter, sans-serif',
               transition: 'border-color 0.15s, box-shadow 0.15s',
             }}
-            placeholder="Pergunte sobre estoque, finanças..."
+            placeholder="Quais pacientes em risco de abandono? Qual serviço mais rentável?"
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSend()}

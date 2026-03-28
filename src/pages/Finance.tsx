@@ -546,6 +546,15 @@ const Finance: React.FC = () => {
       </div>
   );
 
+  // ── INADIMPLÊNCIA ALERT ───────────────────────────────────────────
+  const inadimplenciaAlert = useMemo(() => {
+    const totalIncome = transactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + t.amount, 0);
+    const pending = transactions.filter(t => t.type === 'INCOME' && t.status === 'PENDING');
+    const pendingAmount = pending.reduce((acc, t) => acc + t.amount, 0);
+    const rate = totalIncome > 0 ? (pendingAmount / totalIncome) * 100 : 0;
+    return { rate, pendingAmount, count: pending.length, isAlert: rate > 15 };
+  }, [transactions]);
+
   return (
     <div className="space-y-6">
        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -568,6 +577,25 @@ const Finance: React.FC = () => {
              </button>
         </div>
       </div>
+
+      {/* Inadimplência Alert */}
+      {inadimplenciaAlert.isAlert && (
+        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+            <TrendingDown size={16} className="text-red-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-red-700 text-sm">
+              Alerta de Inadimplência — {inadimplenciaAlert.rate.toFixed(1)}% da receita em aberto
+            </p>
+            <p className="text-red-600 text-xs mt-0.5">
+              {inadimplenciaAlert.count} recebimento{inadimplenciaAlert.count !== 1 ? 's' : ''} pendente{inadimplenciaAlert.count !== 1 ? 's' : ''} totalizando{' '}
+              <strong>R$ {inadimplenciaAlert.pendingAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>.
+              O benchmark do setor odontológico é abaixo de 15%.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* --- CASHFLOW TAB --- */}
       {activeTab === 'CASHFLOW' && (
