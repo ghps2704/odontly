@@ -1,13 +1,14 @@
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNexus } from '@/contexts/NexusContext';
-import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, TransactionItem } from '@/types';
+import { Transaction, TransactionType, PaymentMethod, RecurrenceFrequency, DRECategoryType, FinancialCategory, Attachment, TransactionItem, Contact } from '@/types';
 import { 
-    Plus, Search, ArrowUpCircle, ArrowDownCircle, 
+    Plus, Search, ArrowUpCircle, ArrowDownCircle,
     CheckCircle, XCircle, Trash2, Calendar as CalendarIcon, Wallet,
     ChevronLeft, ChevronRight, List, TrendingUp, Building2,
     Repeat, CheckSquare, Square, PieChart, Filter, ChevronDown, ChevronRight as ChevronRightIcon,
-    CornerDownRight, Tag, Eye, EyeOff, BarChart2, CalendarClock, Paperclip, FileText, Image as ImageIcon, Download, X, User, Hexagon, Package, ShoppingCart, TrendingDown
+    CornerDownRight, Tag, Eye, EyeOff, BarChart2, CalendarClock, Paperclip, FileText, Image as ImageIcon, Download, X, User, Hexagon, Package, ShoppingCart, TrendingDown,
+    CreditCard, ArrowLeftRight, Banknote, Receipt, BadgeCheck, AlertCircle
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -27,11 +28,12 @@ const DRE_STRUCTURE_LABELS: Record<DRECategoryType, { label: string, color: stri
 };
 
 const Finance: React.FC = () => {
-  const { 
+  const {
       transactions, accounts, categories, contacts, appointments, items,
-      addTransaction, updateTransaction, deleteTransaction, 
-      addCategory, deleteCategory, addAccount, updateAccount, deleteAccount, 
-      settings 
+      addTransaction, updateTransaction, deleteTransaction,
+      addCategory, deleteCategory, addAccount, updateAccount, deleteAccount,
+      addContact,
+      settings
   } = useNexus();
   
   const [activeTab, setActiveTab] = useState<'CASHFLOW' | 'TREASURY' | 'DRE' | 'CONFIG'>('CASHFLOW');
@@ -74,10 +76,24 @@ const Finance: React.FC = () => {
   const [editingAccount, setEditingAccount] = useState({
       id: '',
       name: '',
+      bankName: '',
+      agency: '',
+      accountNumber: '',
       type: 'BANK' as any,
       balance: 0,
       initialBalance: 0,
       color: '#3b82f6'
+  });
+
+  // Treasury states
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferForm, setTransferForm] = useState({
+      fromId: '',
+      toId: '',
+      amount: 0,
+      date: new Date().toISOString().split('T')[0],
+      description: ''
   });
 
   // Category Form
@@ -91,8 +107,59 @@ const Finance: React.FC = () => {
   // File Input Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // --- SEARCHABLE CONTACT FILTER (cashflow header) ---
+  const [cfSearch, setCfSearch] = useState('');
+  const [cfDropOpen, setCfDropOpen] = useState(false);
+  const cfRef = useRef<HTMLDivElement>(null);
+
+  // --- SEARCHABLE CONTACT FIELD (transaction modal) ---
+  const [modalContactSearch, setModalContactSearch] = useState('');
+  const [modalContactDropOpen, setModalContactDropOpen] = useState(false);
+
+  // --- QUICK-ADD CONTACT ---
+  const [isQuickContactOpen, setIsQuickContactOpen] = useState(false);
+  const [quickContactName, setQuickContactName] = useState('');
+  const [quickContactType, setQuickContactType] = useState<'CLIENT' | 'SUPPLIER' | 'BOTH'>('SUPPLIER');
+
+  // --- CART SUB-GROUP ---
+  const [cartGroup, setCartGroup] = useState('');
+
   // --- HELPERS ---
   const formatCurrency = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  // Close cashflow filter dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (cfRef.current && !cfRef.current.contains(e.target as Node)) {
+        setCfDropOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Quick-add contact from filter or modal
+  const handleQuickAddContact = () => {
+    if (!quickContactName.trim()) return;
+    const newContact: Contact = {
+      id: Date.now().toString(),
+      name: quickContactName.trim(),
+      type: quickContactType,
+      document: '',
+      email: '',
+      address: { zipCode: '', street: '', number: '', neighborhood: '', city: '', state: '' }
+    };
+    addContact(newContact);
+    if (isTxModalOpen) {
+      setEditingTx(prev => ({ ...prev, contactId: newContact.id }));
+      setModalContactSearch(newContact.name);
+    } else {
+      setSelectedContactFilter(newContact.id);
+      setCfSearch(newContact.name);
+    }
+    setIsQuickContactOpen(false);
+    setQuickContactName('');
+  };
   
   const handleMonthChange = (dateState: Date, setDateState: React.Dispatch<React.SetStateAction<Date>>, direction: 'prev' | 'next') => {
       const newDate = new Date(dateState);
@@ -294,7 +361,8 @@ const Finance: React.FC = () => {
               total: price * cartQty,
               originalType: catalogItem.type,
               categoryId: catId,
-              categoryName: catName
+              categoryName: catName,
+              groupLabel: cartGroup.trim() || undefined
           };
 
       } else {
@@ -309,13 +377,14 @@ const Finance: React.FC = () => {
           }
 
           newItem = {
-              itemId: category.id, // Using Category ID as item ID essentially
-              name: category.name, // Item name is the category name
+              itemId: category.id,
+              name: category.name,
               quantity: cartQty,
               unitPrice: price,
               total: price * cartQty,
               categoryId: category.id,
-              categoryName: category.name
+              categoryName: category.name,
+              groupLabel: cartGroup.trim() || undefined
           };
       }
 
@@ -389,15 +458,72 @@ const Finance: React.FC = () => {
       const accData = {
           id: editingAccount.id || Date.now().toString(),
           name: editingAccount.name,
+          bankName: editingAccount.bankName || undefined,
+          agency: editingAccount.agency || undefined,
+          accountNumber: editingAccount.accountNumber || undefined,
           type: editingAccount.type,
-          balance: editingAccount.id ? editingAccount.balance : editingAccount.initialBalance, 
+          balance: editingAccount.id ? editingAccount.balance : editingAccount.initialBalance,
           initialBalance: Number(editingAccount.initialBalance),
           color: editingAccount.color
       };
       if(editingAccount.id) updateAccount(accData);
       else addAccount(accData);
       setIsAccountModalOpen(false);
-      setEditingAccount({ id: '', name: '', type: 'BANK', balance: 0, initialBalance: 0, color: '#3b82f6' });
+      setEditingAccount({ id: '', name: '', bankName: '', agency: '', accountNumber: '', type: 'BANK', balance: 0, initialBalance: 0, color: '#3b82f6' });
+  };
+
+  const handleTransfer = () => {
+      if (!transferForm.fromId || !transferForm.toId || transferForm.amount <= 0) {
+          alert('Preencha todas as informações da transferência.');
+          return;
+      }
+      if (transferForm.fromId === transferForm.toId) {
+          alert('Conta de origem e destino devem ser diferentes.');
+          return;
+      }
+      const fromAcc = accounts.find(a => a.id === transferForm.fromId);
+      const toAcc = accounts.find(a => a.id === transferForm.toId);
+      if (!fromAcc || !toAcc) return;
+
+      const desc = transferForm.description.trim() || `Transferência: ${fromAcc.name} → ${toAcc.name}`;
+      const groupId = Date.now().toString();
+
+      const expenseTx: Transaction = {
+          id: `${groupId}_out`,
+          date: transferForm.date,
+          paidAt: transferForm.date,
+          description: desc,
+          amount: transferForm.amount,
+          type: 'EXPENSE',
+          category: 'Transferência',
+          categoryId: 'transfer',
+          accountId: transferForm.fromId,
+          contactId: 'system',
+          status: 'PAID',
+          isReconciled: true,
+          paymentMethod: 'TRANSFER',
+          items: []
+      };
+      const incomeTx: Transaction = {
+          id: `${groupId}_in`,
+          date: transferForm.date,
+          paidAt: transferForm.date,
+          description: desc,
+          amount: transferForm.amount,
+          type: 'INCOME',
+          category: 'Transferência',
+          categoryId: 'transfer',
+          accountId: transferForm.toId,
+          contactId: 'system',
+          status: 'PAID',
+          isReconciled: true,
+          paymentMethod: 'TRANSFER',
+          items: []
+      };
+      addTransaction(expenseTx, false);
+      addTransaction(incomeTx, false);
+      setIsTransferModalOpen(false);
+      setTransferForm({ fromId: '', toId: '', amount: 0, date: new Date().toISOString().split('T')[0], description: '' });
   };
 
   const handleAddCategory = () => {
@@ -426,22 +552,27 @@ const Finance: React.FC = () => {
   const openTxModal = (tx?: Transaction) => {
     if (tx) {
         setEditingTx(tx);
+        const existingContact = contacts.find(c => c.id === tx.contactId);
+        setModalContactSearch(existingContact?.name || '');
         setRecurrenceForm({ enabled: false, frequency: 'MONTHLY', occurrences: 12 });
     } else {
         const defaultAcc = accounts.length > 0 ? accounts[0].id : '';
-        setEditingTx({ 
-            date: new Date().toISOString().split('T')[0], 
-            type: 'EXPENSE', 
-            status: 'PENDING', 
-            paymentMethod: 'PIX', 
+        setEditingTx({
+            date: new Date().toISOString().split('T')[0],
+            type: 'EXPENSE',
+            status: 'PENDING',
+            paymentMethod: 'PIX',
             isReconciled: false,
             attachments: [],
             contactId: '',
             accountId: defaultAcc,
             items: []
         });
+        setModalContactSearch('');
         setRecurrenceForm({ enabled: false, frequency: 'MONTHLY', occurrences: 12 });
     }
+    setCartGroup('');
+    setModalContactDropOpen(false);
     setIsTxModalOpen(true);
   };
 
@@ -516,6 +647,54 @@ const Finance: React.FC = () => {
   }, [unifiedTransactions]);
 
   const currentTotalBalance = useMemo(() => accounts.reduce((acc, a) => acc + a.balance, 0), [accounts]);
+
+  // Per-account stats for current calendar month
+  const accountStats = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const result: Record<string, { monthIncome: number; monthExpense: number; pendingCount: number }> = {};
+    accounts.forEach(acc => {
+      const accTxs = transactions.filter(t => {
+        if (t.accountId !== acc.id) return false;
+        const parts = t.date.split('-');
+        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        return d >= start && d <= end;
+      });
+      result[acc.id] = {
+        monthIncome: accTxs.filter(t => t.type === 'INCOME' && t.status === 'PAID').reduce((a, b) => a + b.amount, 0),
+        monthExpense: accTxs.filter(t => t.type === 'EXPENSE' && t.status === 'PAID').reduce((a, b) => a + b.amount, 0),
+        pendingCount: accTxs.filter(t => !t.isReconciled && t.status === 'PAID').length
+      };
+    });
+    return result;
+  }, [accounts, transactions]);
+
+  const totalPendingReconciliation = useMemo(
+    () => transactions.filter(t => !t.isReconciled && t.status === 'PAID').length,
+    [transactions]
+  );
+
+  // Running balance statement for selected account
+  const accountStatement = useMemo(() => {
+    if (!selectedAccountId) return [];
+    const acc = accounts.find(a => a.id === selectedAccountId);
+    if (!acc) return [];
+    const accTxs = transactions
+      .filter(t => t.accountId === selectedAccountId)
+      .sort((a, b) => {
+        const da = new Date(a.date).getTime();
+        const db = new Date(b.date).getTime();
+        return da !== db ? da - db : (a.id < b.id ? -1 : 1);
+      });
+    let running = acc.initialBalance;
+    return accTxs.map(t => {
+      if (t.status === 'PAID') {
+        running += t.type === 'INCOME' ? t.amount : -t.amount;
+      }
+      return { ...t, runningBalance: running };
+    });
+  }, [selectedAccountId, accounts, transactions]);
 
   const contactOptions = useMemo(() => {
       return contacts.filter(c => {
@@ -611,18 +790,64 @@ const Finance: React.FC = () => {
                     <button onClick={() => handleMonthChange(currentMonth, setCurrentMonth, 'next')} className="p-2 hover:bg-[#e0f2fe] rounded"><ChevronRight size={20} /></button>
                 </div>
                 <div className="flex items-center gap-4 flex-1 justify-end">
-                    <div className="relative w-48 hidden md:block">
-                        <User className="absolute left-2.5 top-2.5 text-[#64748b]" size={16} />
-                        <select 
-                            value={selectedContactFilter}
-                            onChange={e => setSelectedContactFilter(e.target.value)}
-                            className="w-full pl-9 pr-2 py-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
-                        >
-                            <option value="">Todos os Contatos</option>
-                            {contacts.map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
+                    {/* Searchable contact filter */}
+                    <div className="relative w-56 hidden md:block" ref={cfRef}>
+                        <div className="relative">
+                            <User className="absolute left-2.5 top-2.5 text-[#64748b] pointer-events-none" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Filtrar contato..."
+                                value={cfSearch}
+                                onFocus={() => setCfDropOpen(true)}
+                                onChange={e => {
+                                    setCfSearch(e.target.value);
+                                    if (!e.target.value) setSelectedContactFilter('');
+                                    setCfDropOpen(true);
+                                }}
+                                className="w-full pl-9 pr-7 py-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+                            />
+                            {cfSearch && (
+                                <button
+                                    onClick={() => { setCfSearch(''); setSelectedContactFilter(''); }}
+                                    className="absolute right-2 top-2.5 text-[#64748b] hover:text-[#0a0f1e]"
+                                >
+                                    <X size={13} />
+                                </button>
+                            )}
+                        </div>
+                        {cfDropOpen && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e0f2fe] rounded-lg shadow-xl z-50 max-h-52 overflow-y-auto">
+                                <button
+                                    onMouseDown={() => { setSelectedContactFilter(''); setCfSearch(''); setCfDropOpen(false); }}
+                                    className="w-full text-left px-3 py-2 text-sm hover:bg-[#f0f9ff] text-[#64748b]"
+                                >
+                                    Todos os contatos
+                                </button>
+                                {contacts
+                                    .filter(c => !cfSearch || c.name.toLowerCase().includes(cfSearch.toLowerCase()))
+                                    .map(c => (
+                                        <button
+                                            key={c.id}
+                                            onMouseDown={() => { setSelectedContactFilter(c.id); setCfSearch(c.name); setCfDropOpen(false); }}
+                                            className={`w-full text-left px-3 py-2 text-sm hover:bg-[#f0f9ff] ${selectedContactFilter === c.id ? 'bg-[#e0f2fe] text-[#0284c7] font-bold' : 'text-[#0a0f1e]'}`}
+                                        >
+                                            {c.name}
+                                        </button>
+                                    ))
+                                }
+                                {contacts.filter(c => !cfSearch || c.name.toLowerCase().includes(cfSearch.toLowerCase())).length === 0 && (
+                                    <p className="px-3 py-2 text-xs text-[#64748b] italic">Nenhum contato encontrado.</p>
+                                )}
+                                <div className="border-t border-[#e0f2fe]">
+                                    <button
+                                        onMouseDown={() => { setQuickContactType('SUPPLIER'); setIsQuickContactOpen(true); setCfDropOpen(false); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-[#0284c7] hover:bg-[#f0f9ff] flex items-center gap-1.5 font-medium"
+                                    >
+                                        <Plus size={13} /> Novo contato
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <button 
                         onClick={() => openTxModal()}
@@ -807,36 +1032,248 @@ const Finance: React.FC = () => {
       )}
 
       {/* --- TREASURY TAB --- */}
-      {activeTab === 'TREASURY' && (
+      {activeTab === 'TREASURY' && (() => {
+        const accTypeConfig: Record<string, { label: string; Icon: React.FC<any> }> = {
+          BANK: { label: 'Conta Bancária', Icon: Building2 },
+          CASH: { label: 'Caixa Físico', Icon: Banknote },
+          WALLET: { label: 'Carteira Digital', Icon: CreditCard },
+          INVESTMENT: { label: 'Aplicação', Icon: TrendingUp }
+        };
+        const now = new Date();
+        const monthLabel = now.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+
+        return (
           <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-[#0a0f1e]">Contas & Carteiras</h3>
-                  <button onClick={() => setIsAccountModalOpen(true)} className="bg-[#0284c7] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#0284c7]"><Plus size={18} /> Nova Conta</button>
+
+            {/* ── SUMMARY BAR ─────────────────────────────────────────────────── */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Total balance */}
+              <div className="bg-gradient-to-br from-[#0284c7] to-[#0369a1] text-white rounded-xl p-5 shadow-lg shadow-blue-500/20 flex items-center gap-4">
+                <div className="w-11 h-11 bg-white/15 rounded-full flex items-center justify-center shrink-0">
+                  <Wallet size={22} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wide">Saldo Total</p>
+                  <p className="text-2xl font-bold leading-tight">{formatCurrency(currentTotalBalance)}</p>
+                  <p className="text-[10px] text-white/60">{accounts.length} conta{accounts.length !== 1 ? 's' : ''}</p>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {accounts.map(acc => (
-                      <div key={acc.id} className="bg-white p-6 rounded-xl shadow-sm border border-[#e0f2fe] hover:shadow-md transition-shadow relative overflow-hidden group">
-                          <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: acc.color || '#ccc' }}></div>
-                          <div className="flex justify-between items-start mb-4 pl-4">
-                              <div>
-                                  <h4 className="font-bold text-[#0a0f1e] text-lg">{acc.name}</h4>
-                                  <span className="text-xs text-[#64748b] uppercase tracking-wide">{acc.type}</span>
-                              </div>
-                              <div className="p-2 bg-[#f0f9ff] rounded-full text-[#64748b]"><Wallet size={20} /></div>
+
+              {/* Month cashflow */}
+              <div className="bg-white border border-[#e0f2fe] rounded-xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-11 h-11 bg-[#f0f9ff] rounded-full flex items-center justify-center shrink-0">
+                  <Receipt size={20} className="text-[#0284c7]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#64748b] uppercase tracking-wide capitalize truncate">{monthLabel}</p>
+                  <div className="flex gap-3 mt-0.5">
+                    <span className="text-sm font-bold text-green-600">+{formatCurrency((Object.values(accountStats) as {monthIncome:number;monthExpense:number;pendingCount:number}[]).reduce((a,s) => a + s.monthIncome, 0))}</span>
+                    <span className="text-sm font-bold text-red-500">-{formatCurrency((Object.values(accountStats) as {monthIncome:number;monthExpense:number;pendingCount:number}[]).reduce((a,s) => a + s.monthExpense, 0))}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pending reconciliation */}
+              <div className={`bg-white border rounded-xl p-5 shadow-sm flex items-center gap-4 ${totalPendingReconciliation > 0 ? 'border-amber-200' : 'border-[#e0f2fe]'}`}>
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${totalPendingReconciliation > 0 ? 'bg-amber-50' : 'bg-[#f0f9ff]'}`}>
+                  {totalPendingReconciliation > 0
+                    ? <AlertCircle size={20} className="text-amber-500" />
+                    : <BadgeCheck size={20} className="text-green-500" />}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-[#64748b] uppercase tracking-wide">Conciliação</p>
+                  {totalPendingReconciliation > 0
+                    ? <p className="text-sm font-bold text-amber-600">{totalPendingReconciliation} lançamento{totalPendingReconciliation !== 1 ? 's' : ''} pendente{totalPendingReconciliation !== 1 ? 's' : ''}</p>
+                    : <p className="text-sm font-bold text-green-600">Tudo conciliado</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* ── HEADER ──────────────────────────────────────────────────────── */}
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-[#0a0f1e]">Contas & Carteiras</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setTransferForm(f => ({ ...f, fromId: accounts[0]?.id || '', toId: accounts[1]?.id || '' })); setIsTransferModalOpen(true); }}
+                  className="border border-[#0284c7] text-[#0284c7] px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-[#f0f9ff] text-sm font-bold"
+                >
+                  <ArrowLeftRight size={16} /> Transferir
+                </button>
+                <button
+                  onClick={() => { setEditingAccount({ id: '', name: '', bankName: '', agency: '', accountNumber: '', type: 'BANK', balance: 0, initialBalance: 0, color: '#3b82f6' }); setIsAccountModalOpen(true); }}
+                  className="bg-[#0284c7] text-white px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-[#0369a1] text-sm font-bold"
+                >
+                  <Plus size={16} /> Nova Conta
+                </button>
+              </div>
+            </div>
+
+            {/* ── ACCOUNT CARDS ───────────────────────────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {accounts.map(acc => {
+                const stats = accountStats[acc.id] || { monthIncome: 0, monthExpense: 0, pendingCount: 0 };
+                const cfg = accTypeConfig[acc.type] || accTypeConfig.BANK;
+                const isSelected = selectedAccountId === acc.id;
+                return (
+                  <div
+                    key={acc.id}
+                    className={`bg-white rounded-xl shadow-sm border transition-all overflow-hidden ${isSelected ? 'border-[#0284c7] shadow-md shadow-blue-200/60 ring-1 ring-[#0284c7]/30' : 'border-[#e0f2fe] hover:shadow-md hover:border-[#bae6fd]'}`}
+                  >
+                    {/* Color accent top bar */}
+                    <div className="h-1.5 w-full" style={{ backgroundColor: acc.color || '#0284c7' }} />
+
+                    <div className="p-5">
+                      {/* Account header */}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <cfg.Icon size={13} className="text-[#64748b] shrink-0" />
+                            <span className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider">{cfg.label}</span>
                           </div>
-                          <div className="pl-4">
-                              <p className="text-sm text-[#64748b]">Saldo Atual</p>
-                              <p className={`text-2xl font-bold ${acc.balance >= 0 ? 'text-[#0a0f1e]' : 'text-red-600'}`}>{formatCurrency(acc.balance)}</p>
-                          </div>
-                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                <button onClick={() => { setEditingAccount(acc as any); setIsAccountModalOpen(true); }} className="p-1 bg-white shadow rounded text-blue-600"><List size={14}/></button>
-                                <button onClick={() => deleteAccount(acc.id)} className="p-1 bg-white shadow rounded text-red-600"><Trash2 size={14}/></button>
-                          </div>
+                          <h4 className="font-bold text-[#0a0f1e] text-base leading-tight truncate">{acc.name}</h4>
+                          {(acc.bankName || acc.agency || acc.accountNumber) && (
+                            <p className="text-[11px] text-[#64748b] mt-0.5 truncate">
+                              {[acc.bankName, acc.agency && `Ag. ${acc.agency}`, acc.accountNumber && `CC ${acc.accountNumber}`].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0 ml-2">
+                          <button onClick={() => { setEditingAccount({ id: acc.id, name: acc.name, bankName: acc.bankName || '', agency: acc.agency || '', accountNumber: acc.accountNumber || '', type: acc.type, balance: acc.balance, initialBalance: acc.initialBalance, color: acc.color || '#3b82f6' }); setIsAccountModalOpen(true); }} className="p-1.5 text-[#64748b] hover:text-blue-600 hover:bg-[#f0f9ff] rounded-lg transition-colors" title="Editar">
+                            <List size={14} />
+                          </button>
+                          <button onClick={() => deleteAccount(acc.id)} className="p-1.5 text-[#64748b] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                  ))}
-              </div>
+
+                      {/* Balance */}
+                      <div className="mb-4">
+                        <p className="text-xs text-[#64748b] mb-0.5">Saldo Atual</p>
+                        <p className={`text-2xl font-bold tabular-nums leading-tight ${acc.balance >= 0 ? 'text-[#0a0f1e]' : 'text-red-600'}`}>
+                          {formatCurrency(acc.balance)}
+                        </p>
+                      </div>
+
+                      {/* Month mini-stats */}
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="bg-green-50 rounded-lg px-3 py-2">
+                          <p className="text-[10px] font-semibold text-green-700 uppercase">Entradas</p>
+                          <p className="text-sm font-bold text-green-700 tabular-nums">{formatCurrency(stats.monthIncome)}</p>
+                        </div>
+                        <div className="bg-red-50 rounded-lg px-3 py-2">
+                          <p className="text-[10px] font-semibold text-red-600 uppercase">Saídas</p>
+                          <p className="text-sm font-bold text-red-600 tabular-nums">{formatCurrency(stats.monthExpense)}</p>
+                        </div>
+                      </div>
+
+                      {/* Footer actions */}
+                      <div className="flex items-center justify-between pt-3 border-t border-[#e0f2fe]">
+                        {stats.pendingCount > 0
+                          ? <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                              <AlertCircle size={10} /> {stats.pendingCount} p/ conciliar
+                            </span>
+                          : <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                              <BadgeCheck size={10} /> Conciliado
+                            </span>
+                        }
+                        <div className="flex gap-1.5">
+                          <button
+                            onClick={() => { setTransferForm(f => ({ ...f, fromId: acc.id })); setIsTransferModalOpen(true); }}
+                            className="text-[11px] font-bold text-[#0284c7] hover:bg-[#f0f9ff] px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
+                          >
+                            <ArrowLeftRight size={11} /> Transferir
+                          </button>
+                          <button
+                            onClick={() => setSelectedAccountId(isSelected ? null : acc.id)}
+                            className={`text-[11px] font-bold px-2 py-1 rounded-lg transition-colors flex items-center gap-1 ${isSelected ? 'bg-[#0284c7] text-white' : 'text-[#0284c7] hover:bg-[#f0f9ff]'}`}
+                          >
+                            <List size={11} /> Extrato
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── STATEMENT PANEL ─────────────────────────────────────────────── */}
+            {selectedAccountId && (() => {
+              const acc = accounts.find(a => a.id === selectedAccountId);
+              if (!acc) return null;
+              return (
+                <div className="bg-white border border-[#0284c7]/30 rounded-xl shadow-sm overflow-hidden">
+                  <div className="flex justify-between items-center px-5 py-4 border-b border-[#e0f2fe] bg-[#f0f9ff]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: acc.color || '#0284c7' }} />
+                      <h4 className="font-bold text-[#0a0f1e]">Extrato — {acc.name}</h4>
+                      <span className="text-xs text-[#64748b] bg-white border border-[#e0f2fe] px-2 py-0.5 rounded-full">{accountStatement.length} lançamentos</span>
+                    </div>
+                    <button onClick={() => setSelectedAccountId(null)} className="text-[#64748b] hover:text-[#0a0f1e]"><X size={18} /></button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-[#f8fafc] text-[#64748b] text-xs uppercase tracking-wide border-b border-[#e0f2fe]">
+                        <tr>
+                          <th className="px-4 py-3 text-left">Data</th>
+                          <th className="px-4 py-3 text-left">Descrição</th>
+                          <th className="px-4 py-3 text-left">Contato</th>
+                          <th className="px-4 py-3 text-right">Valor</th>
+                          <th className="px-4 py-3 text-right">Saldo</th>
+                          <th className="px-4 py-3 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#e0f2fe]">
+                        {/* Initial balance row */}
+                        <tr className="bg-[#f0f9ff]/60">
+                          <td className="px-4 py-2 text-xs text-[#64748b] font-mono">—</td>
+                          <td className="px-4 py-2 text-xs font-bold text-[#64748b] italic" colSpan={3}>Saldo inicial</td>
+                          <td className="px-4 py-2 text-right text-sm font-bold text-[#0a0f1e] tabular-nums">{formatCurrency(acc.initialBalance)}</td>
+                          <td />
+                        </tr>
+                        {accountStatement.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-6 text-center text-sm text-[#64748b] italic">Nenhuma movimentação registrada.</td>
+                          </tr>
+                        )}
+                        {accountStatement.map((tx: any) => {
+                          const contactName = contacts.find(c => c.id === tx.contactId)?.name || (tx.contactId === 'system' ? 'Transferência' : '—');
+                          return (
+                            <tr key={tx.id} className={`hover:bg-[#f8fafc] ${tx.status === 'PENDING' ? 'opacity-60' : ''}`}>
+                              <td className="px-4 py-2.5 text-xs text-[#64748b] font-mono whitespace-nowrap">{tx.date}</td>
+                              <td className="px-4 py-2.5 font-medium text-[#0a0f1e] max-w-[200px] truncate">{tx.description || tx.items?.[0]?.name || '—'}</td>
+                              <td className="px-4 py-2.5 text-xs text-[#64748b] truncate max-w-[120px]">{contactName}</td>
+                              <td className={`px-4 py-2.5 text-right font-bold tabular-nums whitespace-nowrap ${tx.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
+                                {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                              </td>
+                              <td className={`px-4 py-2.5 text-right font-bold tabular-nums whitespace-nowrap ${tx.runningBalance >= 0 ? 'text-[#0a0f1e]' : 'text-red-600'}`}>
+                                {tx.status === 'PAID' ? formatCurrency(tx.runningBalance) : <span className="text-[#64748b] font-normal text-xs italic">pendente</span>}
+                              </td>
+                              <td className="px-4 py-2.5 text-center">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${tx.status === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {tx.status === 'PAID' ? 'PAGO' : 'ABERTO'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-[#0284c7] text-white font-bold">
+                          <td colSpan={4} className="px-4 py-3 text-sm">(=) Saldo Atual</td>
+                          <td className={`px-4 py-3 text-right text-base tabular-nums ${acc.balance >= 0 ? '' : 'text-red-300'}`}>{formatCurrency(acc.balance)}</td>
+                          <td />
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
-      )}
+        );
+      })()}
 
       {/* --- DRE TAB --- */}
       {activeTab === 'DRE' && (
@@ -1015,17 +1452,59 @@ const Finance: React.FC = () => {
                       {/* Header Fields */}
                       <div className="grid grid-cols-2 gap-4">
                           <div>
-                              <label className="block text-xs font-bold text-[#64748b] mb-1">Contato / Entidade</label>
-                              <select 
-                                 value={editingTx.contactId || ''}
-                                 onChange={e => setEditingTx({...editingTx, contactId: e.target.value})}
-                                 className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm"
-                              >
-                                 <option value="">Selecione...</option>
-                                 {contactOptions.map(c => (
-                                     <option key={c.id} value={c.id}>{c.name}</option>
-                                 ))}
-                              </select>
+                              <label className="block text-xs font-bold text-[#64748b] mb-1">
+                                  {editingTx.type === 'INCOME' ? 'Paciente / Origem da Receita' : 'Fornecedor / Destino de Pagamento'}
+                              </label>
+                              <div className="relative">
+                                  <input
+                                      type="text"
+                                      placeholder={editingTx.type === 'INCOME' ? 'Buscar paciente...' : 'Buscar fornecedor...'}
+                                      value={modalContactSearch}
+                                      onFocus={() => setModalContactDropOpen(true)}
+                                      onBlur={() => setTimeout(() => setModalContactDropOpen(false), 150)}
+                                      onChange={e => {
+                                          setModalContactSearch(e.target.value);
+                                          if (!e.target.value) setEditingTx({ ...editingTx, contactId: '' });
+                                          setModalContactDropOpen(true);
+                                      }}
+                                      className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e] text-sm focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+                                  />
+                                  {modalContactDropOpen && (
+                                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e0f2fe] rounded-lg shadow-xl z-[60] max-h-44 overflow-y-auto">
+                                          {contactOptions
+                                              .filter(c => !modalContactSearch || c.name.toLowerCase().includes(modalContactSearch.toLowerCase()))
+                                              .map(c => (
+                                                  <button
+                                                      key={c.id}
+                                                      onMouseDown={() => {
+                                                          setEditingTx({ ...editingTx, contactId: c.id });
+                                                          setModalContactSearch(c.name);
+                                                          setModalContactDropOpen(false);
+                                                      }}
+                                                      className={`w-full text-left px-3 py-2 text-sm hover:bg-[#f0f9ff] ${editingTx.contactId === c.id ? 'bg-[#e0f2fe] text-[#0284c7] font-bold' : 'text-[#0a0f1e]'}`}
+                                                  >
+                                                      {c.name}
+                                                  </button>
+                                              ))
+                                          }
+                                          {contactOptions.filter(c => !modalContactSearch || c.name.toLowerCase().includes(modalContactSearch.toLowerCase())).length === 0 && (
+                                              <p className="px-3 py-2 text-xs text-[#64748b] italic">Nenhum resultado.</p>
+                                          )}
+                                          <div className="border-t border-[#e0f2fe]">
+                                              <button
+                                                  onMouseDown={() => {
+                                                      setQuickContactType(editingTx.type === 'INCOME' ? 'CLIENT' : 'SUPPLIER');
+                                                      setIsQuickContactOpen(true);
+                                                      setModalContactDropOpen(false);
+                                                  }}
+                                                  className="w-full text-left px-3 py-2 text-sm text-[#0284c7] hover:bg-[#f0f9ff] flex items-center gap-1.5 font-medium"
+                                              >
+                                                  <Plus size={13} /> {editingTx.type === 'INCOME' ? 'Novo paciente' : 'Novo fornecedor'}
+                                              </button>
+                                          </div>
+                                      </div>
+                                  )}
+                              </div>
                           </div>
                           <div>
                               <label className="block text-xs font-bold text-[#64748b] mb-1">Data Competência</label>
@@ -1045,8 +1524,16 @@ const Finance: React.FC = () => {
                           </label>
                           
                           <div className="space-y-2 mb-3">
+                              {/* 0. Sub-group label */}
+                              <input
+                                  type="text"
+                                  placeholder="Subgrupo (ex: Consultas, Materiais…) — opcional"
+                                  className="w-full p-2 border border-[#e0f2fe] rounded text-sm bg-white text-[#0a0f1e] placeholder:text-[#94a3b8]"
+                                  value={cartGroup}
+                                  onChange={e => setCartGroup(e.target.value)}
+                              />
                               {/* 1. Item Selector */}
-                              <select 
+                              <select
                                   className="w-full p-2 border border-[#e0f2fe] rounded text-sm bg-white"
                                   value={cartSelector}
                                   onChange={e => {
@@ -1116,19 +1603,32 @@ const Finance: React.FC = () => {
                           </div>
 
                           {/* Cart List Display */}
-                          <div className="space-y-1 max-h-40 overflow-y-auto mb-2 border-t border-[#e0f2fe] pt-2">
-                              {editingTx.items && editingTx.items.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-[#e0f2fe] text-xs">
-                                      <div className="flex flex-col">
-                                          <span className="font-bold text-[#0a0f1e]">{item.quantity}x {item.name}</span>
-                                          <span className="text-[10px] text-[#64748b]">{item.categoryName}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                          <span className="font-bold">R$ {item.total.toFixed(2)}</span>
-                                          <button onClick={() => handleRemoveFromCart(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={12} /></button>
-                                      </div>
-                                  </div>
-                              ))}
+                          <div className="space-y-1 max-h-44 overflow-y-auto mb-2 border-t border-[#e0f2fe] pt-2">
+                              {editingTx.items && editingTx.items.map((item, idx) => {
+                                  const prevGroup = editingTx.items?.[idx - 1]?.groupLabel;
+                                  const showHeader = item.groupLabel && item.groupLabel !== prevGroup;
+                                  return (
+                                      <React.Fragment key={idx}>
+                                          {showHeader && (
+                                              <div className="flex items-center gap-2 py-1 px-1">
+                                                  <div className="h-px flex-1 bg-[#e0f2fe]" />
+                                                  <span className="text-[10px] font-bold text-[#0284c7] uppercase tracking-wider">{item.groupLabel}</span>
+                                                  <div className="h-px flex-1 bg-[#e0f2fe]" />
+                                              </div>
+                                          )}
+                                          <div className="flex justify-between items-center bg-white p-2 rounded border border-[#e0f2fe] text-xs">
+                                              <div className="flex flex-col">
+                                                  <span className="font-bold text-[#0a0f1e]">{item.quantity}x {item.name}</span>
+                                                  <span className="text-[10px] text-[#64748b]">{item.categoryName}</span>
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                  <span className="font-bold">R$ {item.total.toFixed(2)}</span>
+                                                  <button onClick={() => handleRemoveFromCart(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={12} /></button>
+                                              </div>
+                                          </div>
+                                      </React.Fragment>
+                                  );
+                              })}
                               {(!editingTx.items || editingTx.items.length === 0) && (
                                   <p className="text-xs text-[#64748b] text-center py-2 italic">Nenhum item lançado.</p>
                               )}
@@ -1267,17 +1767,59 @@ const Finance: React.FC = () => {
       {isAccountModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
-                  {/* Account Modal Content */}
-                  <div className="p-6 border-b border-[#e0f2fe]"><h3 className="text-lg font-bold">Nova Conta / Carteira</h3></div>
-                  <div className="p-6 space-y-4">
-                      <input type="text" placeholder="Nome da Conta" className="w-full border rounded-lg p-2" value={editingAccount.name} onChange={e => setEditingAccount({...editingAccount, name: e.target.value})} />
-                      <select className="w-full border rounded-lg p-2 bg-white" value={editingAccount.type} onChange={e => setEditingAccount({...editingAccount, type: e.target.value as any})}>
-                          <option value="BANK">Conta Bancária</option><option value="CASH">Caixa Físico</option><option value="WALLET">Carteira Digital</option><option value="INVESTMENT">Aplicação</option>
-                      </select>
-                      <div><label className="text-xs text-[#64748b]">Saldo Inicial</label><input type="number" className="w-full border rounded-lg p-2" value={editingAccount.initialBalance} disabled={!!editingAccount.id} onChange={e => setEditingAccount({...editingAccount, initialBalance: parseFloat(e.target.value)})} /></div>
-                      <div><label className="text-xs text-[#64748b]">Cor</label><div className="flex gap-2 mt-1">{['#3b82f6', '#10b981', '#ef4444', '#f59e0b'].map(c => (<button key={c} onClick={() => setEditingAccount({...editingAccount, color: c})} className={`w-6 h-6 rounded-full border-2 ${editingAccount.color === c ? 'border-[#0284c7]' : 'border-transparent'}`} style={{ backgroundColor: c }} />))}</div></div>
+                  <div className="p-5 border-b border-[#e0f2fe] flex justify-between items-center">
+                      <h3 className="text-lg font-bold">{editingAccount.id ? 'Editar Conta' : 'Nova Conta / Carteira'}</h3>
+                      <button onClick={() => setIsAccountModalOpen(false)}><X size={20} className="text-[#64748b]" /></button>
                   </div>
-                  <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsAccountModalOpen(false)} className="px-4 py-2 text-[#64748b]">Cancelar</button><button onClick={handleSaveAccount} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Salvar</button></div>
+                  <div className="p-5 space-y-3">
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Nome da Conta *</label>
+                          <input type="text" placeholder="Ex: Nubank, Caixa da Clínica..." className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0284c7]" value={editingAccount.name} onChange={e => setEditingAccount({...editingAccount, name: e.target.value})} />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Tipo</label>
+                          <select className="w-full border border-[#e0f2fe] rounded-lg p-2.5 bg-white text-sm" value={editingAccount.type} onChange={e => setEditingAccount({...editingAccount, type: e.target.value as any})}>
+                              <option value="BANK">Conta Bancária</option>
+                              <option value="CASH">Caixa Físico</option>
+                              <option value="WALLET">Carteira Digital</option>
+                              <option value="INVESTMENT">Aplicação / Investimento</option>
+                          </select>
+                      </div>
+                      {(editingAccount.type === 'BANK' || editingAccount.type === 'WALLET') && (
+                          <>
+                              <div>
+                                  <label className="block text-xs font-bold text-[#64748b] mb-1">Banco / Instituição</label>
+                                  <input type="text" placeholder="Ex: Itaú, Nubank, PicPay..." className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm" value={editingAccount.bankName} onChange={e => setEditingAccount({...editingAccount, bankName: e.target.value})} />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                      <label className="block text-xs font-bold text-[#64748b] mb-1">Agência</label>
+                                      <input type="text" placeholder="0001" className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm" value={editingAccount.agency} onChange={e => setEditingAccount({...editingAccount, agency: e.target.value})} />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-[#64748b] mb-1">Conta</label>
+                                      <input type="text" placeholder="12345-6" className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm" value={editingAccount.accountNumber} onChange={e => setEditingAccount({...editingAccount, accountNumber: e.target.value})} />
+                                  </div>
+                              </div>
+                          </>
+                      )}
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Saldo Inicial {editingAccount.id && <span className="text-[#94a3b8] font-normal">(não editável)</span>}</label>
+                          <input type="number" className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm" value={editingAccount.initialBalance} disabled={!!editingAccount.id} onChange={e => setEditingAccount({...editingAccount, initialBalance: parseFloat(e.target.value) || 0})} />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Cor de Identificação</label>
+                          <div className="flex gap-2 mt-1 flex-wrap">
+                              {['#3b82f6', '#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9', '#64748b', '#0f172a'].map(c => (
+                                  <button key={c} onClick={() => setEditingAccount({...editingAccount, color: c})} className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${editingAccount.color === c ? 'border-[#0a0f1e] scale-110 ring-2 ring-offset-1 ring-[#0284c7]' : 'border-transparent'}`} style={{ backgroundColor: c }} />
+                              ))}
+                          </div>
+                      </div>
+                  </div>
+                  <div className="p-5 border-t border-[#e0f2fe] flex justify-end gap-2">
+                      <button onClick={() => setIsAccountModalOpen(false)} className="px-4 py-2 text-sm text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
+                      <button onClick={handleSaveAccount} className="px-4 py-2 text-sm font-bold bg-[#0284c7] text-white rounded-lg hover:bg-[#0369a1]">Salvar</button>
+                  </div>
               </div>
           </div>
       )}
@@ -1292,6 +1834,143 @@ const Finance: React.FC = () => {
                       <div><label className="block text-xs font-medium text-[#64748b] mb-1">Nome da Categoria</label><input type="text" placeholder="Ex: Material de Limpeza" className="w-full border border-[#e0f2fe] rounded-lg p-2 bg-white text-[#0a0f1e]" value={newCategory.name} onChange={e => setNewCategory({...newCategory, name: e.target.value})} /></div>
                   </div>
                   <div className="p-6 border-t flex justify-end gap-2"><button onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button><button onClick={handleAddCategory} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Salvar</button></div>
+              </div>
+          </div>
+      )}
+
+      {/* --- TRANSFER MODAL --- */}
+      {isTransferModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
+                  <div className="p-5 border-b border-[#e0f2fe] flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                          <ArrowLeftRight size={18} className="text-[#0284c7]" />
+                          <h3 className="font-bold text-[#0a0f1e]">Transferência entre Contas</h3>
+                      </div>
+                      <button onClick={() => setIsTransferModalOpen(false)}><X size={20} className="text-[#64748b]" /></button>
+                  </div>
+                  <div className="p-5 space-y-4">
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">De (origem) *</label>
+                          <select
+                              value={transferForm.fromId}
+                              onChange={e => setTransferForm({ ...transferForm, fromId: e.target.value })}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm bg-white"
+                          >
+                              <option value="">Selecione a conta de origem...</option>
+                              {accounts.map(a => <option key={a.id} value={a.id}>{a.name} — {formatCurrency(a.balance)}</option>)}
+                          </select>
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Para (destino) *</label>
+                          <select
+                              value={transferForm.toId}
+                              onChange={e => setTransferForm({ ...transferForm, toId: e.target.value })}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm bg-white"
+                          >
+                              <option value="">Selecione a conta de destino...</option>
+                              {accounts.filter(a => a.id !== transferForm.fromId).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                          </select>
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Valor *</label>
+                          <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              placeholder="0,00"
+                              value={transferForm.amount || ''}
+                              onChange={e => setTransferForm({ ...transferForm, amount: parseFloat(e.target.value) || 0 })}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Data</label>
+                          <input
+                              type="date"
+                              value={transferForm.date}
+                              onChange={e => setTransferForm({ ...transferForm, date: e.target.value })}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Descrição</label>
+                          <input
+                              type="text"
+                              placeholder="Opcional..."
+                              value={transferForm.description}
+                              onChange={e => setTransferForm({ ...transferForm, description: e.target.value })}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2.5 text-sm"
+                          />
+                      </div>
+                      {transferForm.fromId && transferForm.toId && transferForm.amount > 0 && (
+                          <div className="bg-[#f0f9ff] border border-[#e0f2fe] rounded-lg p-3 text-xs text-[#0284c7] font-medium">
+                              {formatCurrency(transferForm.amount)} serão movidos de <strong>{accounts.find(a=>a.id===transferForm.fromId)?.name}</strong> para <strong>{accounts.find(a=>a.id===transferForm.toId)?.name}</strong>.
+                          </div>
+                      )}
+                  </div>
+                  <div className="p-5 border-t border-[#e0f2fe] flex justify-end gap-2">
+                      <button onClick={() => setIsTransferModalOpen(false)} className="px-4 py-2 text-sm text-[#64748b] hover:bg-[#f0f9ff] rounded-lg">Cancelar</button>
+                      <button onClick={handleTransfer} className="px-4 py-2 text-sm font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg flex items-center gap-2">
+                          <ArrowLeftRight size={14} /> Confirmar Transferência
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* --- QUICK-ADD CONTACT MODAL --- */}
+      {isQuickContactOpen && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-xs">
+                  <div className="p-5 border-b border-[#e0f2fe] flex justify-between items-center">
+                      <h3 className="font-bold text-[#0a0f1e]">
+                          {quickContactType === 'CLIENT' ? 'Novo Paciente' : 'Novo Fornecedor'}
+                      </h3>
+                      <button onClick={() => setIsQuickContactOpen(false)}>
+                          <X size={20} className="text-[#64748b]" />
+                      </button>
+                  </div>
+                  <div className="p-5 space-y-3">
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Tipo</label>
+                          <select
+                              value={quickContactType}
+                              onChange={e => setQuickContactType(e.target.value as any)}
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 text-sm bg-white text-[#0a0f1e]"
+                          >
+                              <option value="CLIENT">Paciente / Cliente</option>
+                              <option value="SUPPLIER">Fornecedor</option>
+                              <option value="BOTH">Ambos</option>
+                          </select>
+                      </div>
+                      <div>
+                          <label className="block text-xs font-bold text-[#64748b] mb-1">Nome *</label>
+                          <input
+                              type="text"
+                              autoFocus
+                              value={quickContactName}
+                              onChange={e => setQuickContactName(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && handleQuickAddContact()}
+                              placeholder="Nome completo ou razão social"
+                              className="w-full border border-[#e0f2fe] rounded-lg p-2 text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+                          />
+                      </div>
+                  </div>
+                  <div className="p-5 border-t border-[#e0f2fe] flex justify-end gap-2">
+                      <button
+                          onClick={() => { setIsQuickContactOpen(false); setQuickContactName(''); }}
+                          className="px-4 py-2 text-sm text-[#64748b] hover:bg-[#f0f9ff] rounded-lg"
+                      >
+                          Cancelar
+                      </button>
+                      <button
+                          onClick={handleQuickAddContact}
+                          className="px-4 py-2 text-sm font-bold bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg"
+                      >
+                          Salvar
+                      </button>
+                  </div>
               </div>
           </div>
       )}

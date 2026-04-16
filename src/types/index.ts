@@ -77,15 +77,18 @@ export interface Attachment {
 // New Interface for Detailed Transaction Items
 export interface TransactionItem {
     itemId: string; // ID of Item (Catalog) OR ID of Category (Expense)
-    name: string; 
+    name: string;
     quantity: number;
     unitPrice: number;
     total: number;
-    originalType?: ItemType; 
-    
+    originalType?: ItemType;
+
     // Category Snapshot per Item
     categoryId: string;
     categoryName: string;
+
+    // Optional sub-group label to organise items within the same transaction
+    groupLabel?: string;
 }
 
 export interface Transaction {
@@ -122,6 +125,8 @@ export interface Account {
   id: string;
   name: string;
   bankName?: string; // e.g. "Itaú", "Nubank"
+  agency?: string;
+  accountNumber?: string;
   balance: number;
   initialBalance: number; // For reconciliation
   type: 'BANK' | 'CASH' | 'WALLET' | 'INVESTMENT';

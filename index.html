@@ -157,9 +157,95 @@
     /* Scroll reveal */
     .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Scroll progress bar ── */
+    #scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #0284c7 0%, #38bdf8 60%, #7dd3fc 100%);
+      z-index: 200;
+      pointer-events: none;
+      transition: width 0.08s linear;
+    }
+
+    /* ── Dental floating objects ── */
+    .d-obj {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+      will-change: transform;
+    }
+
+    /* Inner element carries the CSS float animation — no transform conflict with parent parallax */
+    @keyframes d-float-a {
+      0%, 100% { transform: translateY(0px) rotate(-2deg); }
+      40%       { transform: translateY(-16px) rotate(1deg); }
+      70%       { transform: translateY(-8px) rotate(-1deg); }
+    }
+    @keyframes d-float-b {
+      0%, 100% { transform: translateY(0px) rotate(3deg); }
+      50%       { transform: translateY(-22px) rotate(-2deg); }
+    }
+    @keyframes d-float-c {
+      0%, 100% { transform: translateY(0px) rotate(-10deg); }
+      50%       { transform: translateY(-14px) rotate(-7deg); }
+    }
+    @keyframes d-float-d {
+      0%, 100% { transform: translateY(0px) rotate(6deg); }
+      50%       { transform: translateY(-18px) rotate(9deg); }
+    }
+    @keyframes d-sparkle {
+      0%, 100% { transform: scale(1) rotate(0deg);   opacity: 0.65; }
+      50%       { transform: scale(1.4) rotate(22deg); opacity: 1; }
+    }
+    @keyframes d-sparkle-b {
+      0%, 100% { transform: scale(1) rotate(0deg);    opacity: 0.5; }
+      50%       { transform: scale(1.25) rotate(-18deg); opacity: 0.9; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .d-anim-a  { animation: d-float-a  5.2s ease-in-out infinite; }
+      .d-anim-b  { animation: d-float-b  7.0s ease-in-out infinite 1.2s; }
+      .d-anim-c  { animation: d-float-c  6.1s ease-in-out infinite 0.6s; }
+      .d-anim-d  { animation: d-float-d  8.3s ease-in-out infinite 2.0s; }
+      .d-spark-a { animation: d-sparkle  2.6s ease-in-out infinite; }
+      .d-spark-b { animation: d-sparkle-b 3.1s ease-in-out infinite 0.9s; }
+      .d-spark-c { animation: d-sparkle  2.2s ease-in-out infinite 1.7s; }
+    }
+
+    /* ── Animated background blobs in hero ── */
+    @keyframes blob-drift-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(40px, -25px) scale(1.06); }
+      66%       { transform: translate(-20px, 18px) scale(0.96); }
+    }
+    @keyframes blob-drift-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      40%       { transform: translate(-28px, 30px) scale(1.04); }
+      75%       { transform: translate(30px, -12px) scale(0.97); }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .hero-blob-1 { animation: blob-drift-1 16s ease-in-out infinite; }
+      .hero-blob-2 { animation: blob-drift-2 20s ease-in-out infinite; }
+    }
+
+    /* ── Hero dashboard 3D tilt ── */
+    #hero-tilt-wrap {
+      perspective: 1400px;
+      perspective-origin: 50% 50%;
+    }
+    #hero-tilt-wrap .float {
+      transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      will-change: transform;
+    }
   </style>
 </head>
 <body>
+
+<!-- Scroll Progress Bar -->
+<div id="scroll-progress" aria-hidden="true"></div>
 
 <!-- ═══════════════════════════════════════════
      URGENCY TOP BAR
@@ -211,6 +297,111 @@
   <!-- Dots background -->
   <div class="dots-pattern absolute inset-0 opacity-30 pointer-events-none"></div>
 
+  <!-- Animated gradient blobs -->
+  <div class="hero-blob-1 absolute pointer-events-none" style="top:-15%;left:-8%;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(2,132,199,0.10) 0%,transparent 68%);"></div>
+  <div class="hero-blob-2 absolute pointer-events-none" style="top:5%;right:-12%;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.09) 0%,transparent 68%);"></div>
+
+  <!-- ── Dental floating objects (desktop only) ── -->
+  <div class="hidden lg:block" aria-hidden="true">
+
+    <!-- Dente molar grande — esquerda -->
+    <div class="d-obj" data-dspeed="0.10" style="top:4%;left:-1%;">
+      <div class="d-anim-a" style="opacity:0.22;">
+        <svg width="88" height="108" viewBox="0 0 88 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 33C4 20 8 8 19 3C25 1 31 0 44 0C57 0 63 1 69 3C80 8 84 20 80 33C82 49 82 68 76 82C72 92 66 98 58 96C53 94 50 86 44 80C38 86 35 94 30 96C22 98 16 92 12 82C6 68 6 49 8 33Z" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="2.5"/>
+          <line x1="27" y1="4"  x2="27" y2="38" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <line x1="44" y1="1"  x2="44" y2="40" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <line x1="61" y1="4"  x2="61" y2="38" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <path d="M16 11C14 16 14 25 16 32" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Escova dental — canto superior direito, inclinada -->
+    <div class="d-obj" data-dspeed="0.18" style="top:2%;right:2%;">
+      <div class="d-anim-b" style="opacity:0.55;transform-origin:center;">
+        <svg width="164" height="46" viewBox="0 0 164 46" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(-28deg);">
+          <rect x="2" y="17" width="96" height="12" rx="6" fill="#0284c7"/>
+          <rect x="28" y="18" width="44" height="2" rx="1" fill="#0369a1" opacity="0.45"/>
+          <rect x="28" y="26" width="44" height="2" rx="1" fill="#0369a1" opacity="0.45"/>
+          <rect x="96" y="18" width="20" height="10" rx="4" fill="#0369a1"/>
+          <rect x="114" y="8" width="44" height="30" rx="10" fill="#0ea5e9"/>
+          <line x1="121" y1="8" x2="121" y2="2" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="128" y1="8" x2="128" y2="1" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="135" y1="8" x2="135" y2="2" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="142" y1="8" x2="142" y2="1" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="149" y1="8" x2="149" y2="2" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="121" y1="38" x2="121" y2="44" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="128" y1="38" x2="128" y2="45" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="135" y1="38" x2="135" y2="44" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="142" y1="38" x2="142" y2="45" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="149" y1="38" x2="149" y2="44" stroke="#e0f2fe" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="8" cy="23" r="6" fill="#0369a1"/>
+          <circle cx="8" cy="23" r="3" fill="#0284c7"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Espelho dental — canto inferior esquerdo -->
+    <div class="d-obj" data-dspeed="0.07" style="bottom:9%;left:5%;">
+      <div class="d-anim-c" style="opacity:0.42;">
+        <svg width="30" height="104" viewBox="0 0 30 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="36" width="6" height="68" rx="3" fill="#94a3b8"/>
+          <rect x="12" y="44" width="6" height="2" rx="1" fill="#cbd5e1"/>
+          <rect x="12" y="51" width="6" height="2" rx="1" fill="#cbd5e1"/>
+          <rect x="12" y="58" width="6" height="2" rx="1" fill="#cbd5e1"/>
+          <rect x="12" y="65" width="6" height="2" rx="1" fill="#cbd5e1"/>
+          <rect x="13.5" y="22" width="3" height="18" rx="1.5" fill="#94a3b8"/>
+          <circle cx="15" cy="15" r="14" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2.5"/>
+          <circle cx="15" cy="15" r="9"  fill="#dbeafe"/>
+          <circle cx="11" cy="11" r="3"  fill="white" opacity="0.55"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Dente pequeno — lado direito médio -->
+    <div class="d-obj" data-dspeed="0.22" style="top:44%;right:2%;">
+      <div class="d-anim-d" style="opacity:0.38;">
+        <svg width="50" height="62" viewBox="0 0 50 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 19C2 12 4 5 11 2C14 1 18 0 25 0C32 0 36 1 39 2C46 5 48 12 46 19C47 28 47 39 43 48C40 53 37 56 33 55C30 54 28 49 25 45C22 49 20 54 17 55C13 56 10 53 7 48C3 39 3 28 4 19Z" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="2"/>
+          <line x1="16" y1="2"  x2="16" y2="21" stroke="#bae6fd" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+          <line x1="25" y1="1"  x2="25" y2="23" stroke="#bae6fd" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+          <line x1="34" y1="2"  x2="34" y2="21" stroke="#bae6fd" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+          <path d="M9 7C8 10 8 15 9 18" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sparkle grande — esquerda, acima do título -->
+    <div class="d-obj" style="top:20%;left:16%;">
+      <div class="d-spark-a" style="opacity:0.60;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 0L16.2 11.8L28 14L16.2 16.2L14 28L11.8 16.2L0 14L11.8 11.8Z" fill="#7dd3fc"/></svg>
+      </div>
+    </div>
+
+    <!-- Sparkle médio — direita, abaixo da escova -->
+    <div class="d-obj" style="top:50%;right:14%;">
+      <div class="d-spark-b" style="opacity:0.48;">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 0L11.6 8.4L20 10L11.6 11.6L10 20L8.4 11.6L0 10L8.4 8.4Z" fill="#0ea5e9"/></svg>
+      </div>
+    </div>
+
+    <!-- Sparkle pequeno — acima da escova -->
+    <div class="d-obj" style="top:10%;right:26%;">
+      <div class="d-spark-c" style="opacity:0.45;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 0L8.1 5.9L14 7L8.1 8.1L7 14L5.9 8.1L0 7L5.9 5.9Z" fill="#38bdf8"/></svg>
+      </div>
+    </div>
+
+    <!-- Sparkle extra — canto esquerdo inferior -->
+    <div class="d-obj" style="bottom:20%;left:14%;">
+      <div class="d-spark-b" style="opacity:0.35;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 0L9.3 6.7L16 8L9.3 9.3L8 16L6.7 9.3L0 8L6.7 6.7Z" fill="#7dd3fc"/></svg>
+      </div>
+    </div>
+
+  </div>
+
   <div class="max-w-6xl mx-auto px-6 relative">
     <div class="text-center max-w-4xl mx-auto">
 
@@ -253,6 +444,7 @@
       </p>
 
       <!-- Hero visual — Dashboard mockup -->
+      <div id="hero-tilt-wrap">
       <div class="float relative mx-auto max-w-4xl">
         <!-- Shadow -->
         <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-10 bg-primary/10 blur-2xl rounded-full pointer-events-none"></div>
@@ -370,6 +562,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /hero-tilt-wrap -->
     </div>
   </div>
 </section>
@@ -1558,6 +1751,87 @@
 
   // ─── Urgency countdown (fake scarcity for demo) ───
   // In production, replace with real backend logic
+
+  // ═══════════════════════════════════════════
+  //  SCROLL PROGRESS + DENTAL PARALLAX + 3D TILT
+  // ═══════════════════════════════════════════
+  (function () {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ── Scroll progress bar ──────────────────
+    const progressBar = document.getElementById('scroll-progress');
+
+    // ── Dental parallax objects ──────────────
+    const dentalObjs = document.querySelectorAll('.d-obj[data-dspeed]');
+
+    // ── Hero 3D tilt ─────────────────────────
+    const tiltWrap = document.getElementById('hero-tilt-wrap');
+    const tiltInner = tiltWrap ? tiltWrap.querySelector('.float') : null;
+    const MAX_TILT_X = 5;   // degrees
+    const MAX_TILT_Y = 7;   // degrees
+
+    // Restore tilt on mouse leave
+    if (tiltWrap && tiltInner) {
+      tiltWrap.addEventListener('mouseleave', () => {
+        tiltInner.style.transform = 'translateY(0px)';
+        tiltWrap.style.transform  = '';
+      });
+    }
+
+    // ── Scroll handler ───────────────────────
+    let ticking = false;
+    function onScroll() {
+      const scrollY = window.scrollY;
+      // Progress bar
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = (docH > 0 ? (scrollY / docH) * 100 : 0) + '%';
+      // Parallax (skip if reduced motion)
+      if (!prefersReducedMotion) {
+        dentalObjs.forEach(el => {
+          const speed = parseFloat(el.dataset.dspeed) || 0;
+          el.style.transform = 'translateY(' + (scrollY * speed).toFixed(1) + 'px)';
+        });
+      }
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+    }, { passive: true });
+
+    // ── Mouse tilt on hero dashboard ─────────
+    if (tiltWrap && tiltInner && !prefersReducedMotion) {
+      let floatY = 0; // track the current CSS float value via JS to compose transforms
+
+      // We override the .float CSS animation with JS for the tilt card;
+      // the parallax objects use separate elements, so no conflict there.
+      document.addEventListener('mousemove', (e) => {
+        const rect = tiltWrap.getBoundingClientRect();
+        // Only apply tilt when cursor is within a generous range of the hero card
+        const buffer = 200;
+        if (
+          e.clientX < rect.left - buffer || e.clientX > rect.right + buffer ||
+          e.clientY < rect.top  - buffer || e.clientY > rect.bottom + buffer
+        ) return;
+
+        const cx = rect.left + rect.width  / 2;
+        const cy = rect.top  + rect.height / 2;
+        const dx = (e.clientX - cx) / (rect.width  / 2);
+        const dy = (e.clientY - cy) / (rect.height / 2);
+        const rotX = -dy * MAX_TILT_X;
+        const rotY =  dx * MAX_TILT_Y;
+
+        // Apply 3D rotation on the WRAP (perspective set in CSS),
+        // so the inner .float CSS translateY animation is not disturbed.
+        tiltWrap.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+        tiltWrap.style.transformStyle = 'preserve-3d';
+        tiltWrap.style.transition = 'transform 0.25s cubic-bezier(0.23,1,0.32,1)';
+      });
+    }
+
+    // Run once on load to set initial progress
+    onScroll();
+  })();
 </script>
 </body>
 </html>
