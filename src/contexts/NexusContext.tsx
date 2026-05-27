@@ -344,8 +344,41 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateTransaction = (updatedTx: Transaction) => {
+    const oldTx = transactions.find(t => t.id === updatedTx.id);
     setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
     updateDB('transactions', updatedTx.id, updatedTx);
+
+    if (!oldTx) return;
+    const wasPaid = oldTx.status === 'PAID';
+    const isPaid = updatedTx.status === 'PAID';
+
+    if (!wasPaid && isPaid) {
+      // PENDING → PAID: credit/debit the account
+      const acc = accounts.find(a => a.id === updatedTx.accountId);
+      if (acc) {
+        const newBalance = updatedTx.type === 'INCOME' ? acc.balance + updatedTx.amount : acc.balance - updatedTx.amount;
+        updateAccount({ ...acc, balance: newBalance });
+      }
+    } else if (wasPaid && !isPaid) {
+      // PAID → PENDING: reverse the credit/debit
+      const acc = accounts.find(a => a.id === oldTx.accountId);
+      if (acc) {
+        const newBalance = oldTx.type === 'INCOME' ? acc.balance - oldTx.amount : acc.balance + oldTx.amount;
+        updateAccount({ ...acc, balance: newBalance });
+      }
+    } else if (wasPaid && isPaid && oldTx.accountId !== updatedTx.accountId) {
+      // Account changed while staying PAID: undo on old account, apply on new account
+      const oldAcc = accounts.find(a => a.id === oldTx.accountId);
+      if (oldAcc) {
+        const revBalance = oldTx.type === 'INCOME' ? oldAcc.balance - oldTx.amount : oldAcc.balance + oldTx.amount;
+        updateAccount({ ...oldAcc, balance: revBalance });
+      }
+      const newAcc = accounts.find(a => a.id === updatedTx.accountId);
+      if (newAcc) {
+        const fwdBalance = updatedTx.type === 'INCOME' ? newAcc.balance + updatedTx.amount : newAcc.balance - updatedTx.amount;
+        updateAccount({ ...newAcc, balance: fwdBalance });
+      }
+    }
   };
 
   const deleteTransaction = (id: string) => {
@@ -405,9 +438,69 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const completeAppointment = (id: string, usedMaterials: BOMItem[], paymentDetails?: { accountId: string, method: PaymentMethod, installments: number }, discount: number = 0, nps: number = 0) => {
     const appt = appointments.find(a => a.id === id);
     if (!appt || appt.status === 'COMPLETED') return;
-    const completionData = { status: 'COMPLETED' as const, customMaterials: usedMaterials, finalAmount: (appt.items?.reduce((a, b) => a + (b.unitPrice * b.quantity), 0) || 0) - discount, npsScore: nps };
+
+    const subtotal = appt.items?.reduce((a, b) => a + (b.unitPrice * b.quantity), 0) || 0;
+    const finalAmount = subtotal - discount;
+
+    const completionData = { status: 'COMPLETED' as const, customMaterials: usedMaterials, finalAmount, npsScore: nps };
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, ...completionData } : a));
     updateDB('appointments', id, completionData);
+
+    // Auto-generate income transaction when payment details are provided
+    if (paymentDetails?.accountId && appt.items?.length && appt.clientId) {
+      const discountFactor = subtotal > 0 ? finalAmount / subtotal : 1;
+
+      const txItems: TransactionItem[] = appt.items.map(si => {
+        const catalogItem = items.find(i => i.id === si.itemId);
+        const isProduct = catalogItem?.type === 'PRODUCT';
+        const categoryId = isProduct ? '2' : '1';
+        const categoryName = isProduct ? 'Venda de Produtos' : 'Venda de Serviços';
+        const adjustedUnitPrice = si.unitPrice * discountFactor;
+        return {
+          itemId: si.itemId,
+          name: catalogItem?.name || 'Serviço',
+          quantity: si.quantity,
+          unitPrice: parseFloat(adjustedUnitPrice.toFixed(2)),
+          total: parseFloat((adjustedUnitPrice * si.quantity).toFixed(2)),
+          originalType: catalogItem?.type,
+          categoryId,
+          categoryName,
+          groupLabel: 'Atendimento',
+        };
+      });
+
+      // Correct any rounding drift so items sum == finalAmount
+      const itemsSum = txItems.reduce((s, i) => s + i.total, 0);
+      if (txItems.length > 0 && Math.abs(itemsSum - finalAmount) > 0.001) {
+        txItems[txItems.length - 1].total = parseFloat((txItems[txItems.length - 1].total + (finalAmount - itemsSum)).toFixed(2));
+      }
+
+      const firstService = appt.items
+        .map(si => items.find(i => i.id === si.itemId))
+        .find(i => i?.type === 'SERVICE');
+
+      const tx: Transaction = {
+        id: `appt-${id}-${Date.now()}`,
+        date: appt.date,
+        paidAt: new Date().toISOString().split('T')[0],
+        description: `(Agenda) ${appt.clientName}${firstService ? ` – ${firstService.name}` : ''}`,
+        amount: finalAmount,
+        type: 'INCOME',
+        category: 'Venda de Serviços',
+        categoryId: '1',
+        items: txItems,
+        accountId: paymentDetails.accountId,
+        paymentMethod: paymentDetails.method,
+        contactId: appt.clientId,
+        appointmentId: id,
+        status: 'PAID',
+        isReconciled: false,
+        impactFiscal: true,
+        impactGerencial: true,
+      };
+
+      addTransaction(tx);
+    }
   };
 
   const addContact = (c: Contact) => {
