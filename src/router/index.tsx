@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AuthRoute from '@/components/AuthRoute';
 import PinRoute from '@/components/PinRoute';
 import Layout from '@/components/Layout';
-import { Login, Dashboard, Catalog, Calendar, Contacts, Finance, Fiscal, Settings } from '@/pages';
+import { Login, Dashboard, Catalog, Calendar, Contacts, Finance, Fiscal, Settings, Professionals } from '@/pages';
 import { useNexus } from '@/contexts';
 
 const GuestRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
@@ -22,8 +22,9 @@ const AppRoutes: React.FC = () => (
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/catalog"   element={<Catalog />} />
         <Route path="/contacts"  element={<Contacts />} />
-        <Route path="/calendar"  element={<Calendar />} />
-        <Route path="/fiscal"    element={<Fiscal />} />
+        <Route path="/calendar"       element={<Calendar />} />
+        <Route path="/professionals"  element={<Professionals />} />
+        <Route path="/fiscal"         element={<Fiscal />} />
 
         <Route element={<PinRoute />}>
           <Route path="/finance"  element={<Finance />} />

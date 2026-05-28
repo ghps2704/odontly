@@ -140,6 +140,18 @@ export interface Professional {
   name: string;
   role: string;
   active: boolean;
+  // Personal & HR fields
+  cpf?: string;
+  birthDate?: string;        // YYYY-MM-DD
+  phone?: string;
+  email?: string;
+  hireDate?: string;         // YYYY-MM-DD
+  // Clinical credentials
+  cro?: string;              // CRO number e.g. "SP-12345"
+  croState?: string;         // UF: SP, RJ, etc.
+  croExpiry?: string;        // YYYY-MM-DD
+  specialty?: string;        // e.g. "Ortodontia", "Endodontia"
+  photo?: string;            // base64 or URL
   // RF030 - Availability Scale
   availability?: {
       start: string; // "09:00"

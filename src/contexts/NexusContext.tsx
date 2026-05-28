@@ -58,6 +58,7 @@ interface NexusContextType {
   deleteContact: (id: string) => void;
   
   addProfessional: (prof: Professional) => void;
+  updateProfessional: (prof: Professional) => void;
   deleteProfessional: (id: string) => void;
   
   emitInvoice: (id: string) => Promise<void>;
@@ -520,6 +521,10 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProfessionals(prev => [...prev, p]);
     insertDB('professionals', p);
   };
+  const updateProfessional = (p: Professional) => {
+    setProfessionals(prev => prev.map(x => x.id === p.id ? p : x));
+    updateDB('professionals', p.id, p);
+  };
   const deleteProfessional = (id: string) => {
     setProfessionals(prev => prev.filter(p => p.id !== id));
     deleteDB('professionals', id);
@@ -558,7 +563,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addAccount, updateAccount, deleteAccount,
       addAppointment, updateAppointmentStatus, completeAppointment,
       addContact, updateContact, deleteContact,
-      addProfessional, deleteProfessional,
+      addProfessional, updateProfessional, deleteProfessional,
       emitInvoice, toggleInvoiceOverdue, updateSettings, verifyPin
     }}>
       {children}

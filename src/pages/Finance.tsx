@@ -36,7 +36,7 @@ const Finance: React.FC = () => {
       settings
   } = useNexus();
   
-  const [activeTab, setActiveTab] = useState<'CASHFLOW' | 'TREASURY' | 'DRE' | 'CONFIG' | 'RECONCILIATION'>('CASHFLOW');
+  const [activeTab, setActiveTab] = useState<'CASHFLOW' | 'PAYABLES' | 'RECEIVABLES' | 'TREASURY' | 'DRE' | 'CONFIG' | 'RECONCILIATION'>('CASHFLOW');
   
   // State for Cashflow Tab
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -87,6 +87,19 @@ const Finance: React.FC = () => {
 
   // Treasury states
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
+  // Payables states
+  const [payableMonth, setPayableMonth] = useState(new Date());
+  const [payableAccountFilter, setPayableAccountFilter] = useState('');
+  const [payableSearch, setPayableSearch] = useState('');
+
+  // Receivables states
+  const [receivableMonth, setReceivableMonth] = useState(new Date());
+  const [receivableAccountFilter, setReceivableAccountFilter] = useState('');
+  const [receivableSearch, setReceivableSearch] = useState('');
+
+  // Cashflow account filter
+  const [cashflowAccountFilter, setCashflowAccountFilter] = useState('');
 
   // Reconciliation states
   const [reconAccountId, setReconAccountId] = useState<string>('');
@@ -558,7 +571,7 @@ const Finance: React.FC = () => {
       setIsCategoryModalOpen(true);
   };
 
-  const openTxModal = (tx?: Transaction) => {
+  const openTxModal = (tx?: Transaction, prefillType?: TransactionType) => {
     if (tx) {
         setEditingTx(tx);
         const existingContact = contacts.find(c => c.id === tx.contactId);
@@ -568,7 +581,7 @@ const Finance: React.FC = () => {
         const defaultAcc = accounts.length > 0 ? accounts[0].id : '';
         setEditingTx({
             date: new Date().toISOString().split('T')[0],
-            type: 'EXPENSE',
+            type: prefillType || 'EXPENSE',
             status: 'PENDING',
             paymentMethod: 'PIX',
             isReconciled: false,
@@ -705,6 +718,102 @@ const Finance: React.FC = () => {
     });
   }, [selectedAccountId, accounts, transactions]);
 
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const payableStats = useMemo(() => {
+      const start = new Date(payableMonth.getFullYear(), payableMonth.getMonth(), 1).toISOString().split('T')[0];
+      const end = new Date(payableMonth.getFullYear(), payableMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+      const list = transactions.filter(t => {
+          if (t.type !== 'EXPENSE') return false;
+          if (payableAccountFilter && t.accountId !== payableAccountFilter) return false;
+          if (payableSearch && !t.description.toLowerCase().includes(payableSearch.toLowerCase()) &&
+              !(contacts.find(c => c.id === t.contactId)?.name || '').toLowerCase().includes(payableSearch.toLowerCase())) return false;
+          return t.date >= start && t.date <= end;
+      }).sort((a, b) => a.date.localeCompare(b.date));
+
+      const overdue = list.filter(t => t.status === 'PENDING' && t.date < today);
+      const dueToday = list.filter(t => t.status === 'PENDING' && t.date === today);
+      const upcoming = list.filter(t => t.status === 'PENDING' && t.date > today);
+      const paid = list.filter(t => t.status === 'PAID');
+      return {
+          list,
+          overdueAmount: overdue.reduce((s, t) => s + t.amount, 0), overdueCount: overdue.length,
+          dueTodayAmount: dueToday.reduce((s, t) => s + t.amount, 0), dueTodayCount: dueToday.length,
+          upcomingAmount: upcoming.reduce((s, t) => s + t.amount, 0), upcomingCount: upcoming.length,
+          paidAmount: paid.reduce((s, t) => s + t.amount, 0), paidCount: paid.length,
+          totalAmount: list.reduce((s, t) => s + t.amount, 0),
+      };
+  }, [transactions, payableMonth, payableAccountFilter, payableSearch, contacts, today]);
+
+  const receivableStats = useMemo(() => {
+      const start = new Date(receivableMonth.getFullYear(), receivableMonth.getMonth(), 1).toISOString().split('T')[0];
+      const end = new Date(receivableMonth.getFullYear(), receivableMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+      const list = transactions.filter(t => {
+          if (t.type !== 'INCOME') return false;
+          if (receivableAccountFilter && t.accountId !== receivableAccountFilter) return false;
+          if (receivableSearch && !t.description.toLowerCase().includes(receivableSearch.toLowerCase()) &&
+              !(contacts.find(c => c.id === t.contactId)?.name || '').toLowerCase().includes(receivableSearch.toLowerCase())) return false;
+          return t.date >= start && t.date <= end;
+      }).sort((a, b) => a.date.localeCompare(b.date));
+
+      const overdue = list.filter(t => t.status === 'PENDING' && t.date < today);
+      const dueToday = list.filter(t => t.status === 'PENDING' && t.date === today);
+      const upcoming = list.filter(t => t.status === 'PENDING' && t.date > today);
+      const received = list.filter(t => t.status === 'PAID');
+      return {
+          list,
+          overdueAmount: overdue.reduce((s, t) => s + t.amount, 0), overdueCount: overdue.length,
+          dueTodayAmount: dueToday.reduce((s, t) => s + t.amount, 0), dueTodayCount: dueToday.length,
+          upcomingAmount: upcoming.reduce((s, t) => s + t.amount, 0), upcomingCount: upcoming.length,
+          receivedAmount: received.reduce((s, t) => s + t.amount, 0), receivedCount: received.length,
+          totalAmount: list.reduce((s, t) => s + t.amount, 0),
+      };
+  }, [transactions, receivableMonth, receivableAccountFilter, receivableSearch, contacts, today]);
+
+  const cashflowDailyTable = useMemo(() => {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const allAccounts = cashflowAccountFilter
+          ? accounts.filter(a => a.id === cashflowAccountFilter)
+          : accounts;
+      const initialBal = allAccounts.reduce((s, a) => {
+          // Sum initial balance plus all paid txs before this month
+          const beforeMonth = transactions.filter(t => {
+              if (!allAccounts.find(a2 => a2.id === t.accountId)) return false;
+              if (t.status !== 'PAID') return false;
+              return t.date < `${year}-${String(month + 1).padStart(2, '0')}-01`;
+          });
+          return s + a.initialBalance + beforeMonth.reduce((ss, t) => ss + (t.type === 'INCOME' ? t.amount : -t.amount), 0);
+      }, 0);
+
+      // Avoid double counting — compute once outside
+      const txsBeforeMonth = transactions.filter(t => {
+          if (cashflowAccountFilter && t.accountId !== cashflowAccountFilter) return false;
+          if (t.status !== 'PAID') return false;
+          return t.date < `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      });
+      const baseBalance = (cashflowAccountFilter
+          ? (accounts.find(a => a.id === cashflowAccountFilter)?.initialBalance ?? 0)
+          : accounts.reduce((s, a) => s + a.initialBalance, 0))
+          + txsBeforeMonth.reduce((s, t) => s + (t.type === 'INCOME' ? t.amount : -t.amount), 0);
+
+      let running = baseBalance;
+      return Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const dayTxs = transactions.filter(t => {
+              if (cashflowAccountFilter && t.accountId !== cashflowAccountFilter) return false;
+              if (t.status !== 'PAID') return false;
+              return (t.paidAt || t.date) === dateStr;
+          });
+          const recebimentos = dayTxs.filter(t => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
+          const pagamentos = dayTxs.filter(t => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+          running += recebimentos - pagamentos;
+          return { dateStr, day, recebimentos, pagamentos, saldoFinal: running, hasMovement: recebimentos > 0 || pagamentos > 0 };
+      });
+  }, [transactions, accounts, currentMonth, cashflowAccountFilter]);
+
   const reconStatement = useMemo(() => {
       const accId = reconAccountId || (accounts[0]?.id ?? '');
       const acc = accounts.find(a => a.id === accId);
@@ -786,21 +895,27 @@ const Finance: React.FC = () => {
           <h2 className="text-2xl font-bold text-[#0a0f1e]">Gestão Financeira & FP&A</h2>
           <p className="text-[#64748b]">Tesouraria, Fluxo de Caixa e Controladoria no padrão Odontly.</p>
         </div>
-        <div className="flex bg-[#e0f2fe] p-1 rounded-lg overflow-x-auto">
-             <button onClick={() => setActiveTab('CASHFLOW')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CASHFLOW' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
-                 <List size={16} /> Fluxo
+        <div className="flex bg-[#e0f2fe] p-1 rounded-lg overflow-x-auto gap-0.5">
+             <button onClick={() => setActiveTab('CASHFLOW')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'CASHFLOW' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <List size={15} /> Fluxo
              </button>
-             <button onClick={() => setActiveTab('TREASURY')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'TREASURY' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
-                 <Wallet size={16} /> Tesouraria
+             <button onClick={() => setActiveTab('PAYABLES')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'PAYABLES' ? 'bg-white shadow text-red-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <ArrowDownCircle size={15} /> A Pagar
              </button>
-             <button onClick={() => setActiveTab('DRE')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'DRE' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
-                 <PieChart size={16} /> DRE
+             <button onClick={() => setActiveTab('RECEIVABLES')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'RECEIVABLES' ? 'bg-white shadow text-green-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <ArrowUpCircle size={15} /> A Receber
              </button>
-             <button onClick={() => setActiveTab('CONFIG')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'CONFIG' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
-                 <Building2 size={16} /> Config
+             <button onClick={() => setActiveTab('TREASURY')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'TREASURY' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <Wallet size={15} /> Tesouraria
              </button>
-             <button onClick={() => setActiveTab('RECONCILIATION')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-2 ${activeTab === 'RECONCILIATION' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
-                 <BadgeCheck size={16} /> Conciliação
+             <button onClick={() => setActiveTab('DRE')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'DRE' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <PieChart size={15} /> DRE
+             </button>
+             <button onClick={() => setActiveTab('CONFIG')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'CONFIG' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <Building2 size={15} /> Config
+             </button>
+             <button onClick={() => setActiveTab('RECONCILIATION')} className={`px-3 py-2 text-sm font-bold rounded-md flex items-center gap-1.5 whitespace-nowrap ${activeTab === 'RECONCILIATION' ? 'bg-white shadow text-blue-600' : 'text-[#64748b] hover:text-[#0a0f1e]'}`}>
+                 <BadgeCheck size={15} /> Conciliação
              </button>
         </div>
       </div>
@@ -911,9 +1026,19 @@ const Finance: React.FC = () => {
         {/* Charts & Summary Code */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white p-4 rounded-xl shadow-sm border border-[#e0f2fe] h-full min-h-[28rem]">
-                <h4 className="font-bold text-[#0a0f1e] mb-4 flex items-center gap-2">
-                    <BarChart2 size={18} className="text-blue-500"/> Movimentação Diária
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-[#0a0f1e] flex items-center gap-2">
+                        <BarChart2 size={18} className="text-blue-500"/> Movimentação Diária
+                    </h4>
+                    <select
+                        value={cashflowAccountFilter}
+                        onChange={e => setCashflowAccountFilter(e.target.value)}
+                        className="border border-[#e0f2fe] rounded-lg px-2 py-1 text-xs bg-white text-[#64748b] focus:outline-none focus:ring-1 focus:ring-[#0284c7]"
+                    >
+                        <option value="">Todas as contas</option>
+                        {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                </div>
                 <ResponsiveContainer width="100%" height="90%">
                     <ComposedChart data={projectionChartData} margin={{top: 10, right: 10, left: 0, bottom: 0}}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -1076,6 +1201,336 @@ const Finance: React.FC = () => {
                 </tbody>
             </table>
         </div>
+
+      {/* Daily cash flow table */}
+      <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
+          <div className="px-4 py-3 border-b border-[#e0f2fe] flex items-center justify-between">
+              <h4 className="font-bold text-[#0a0f1e] flex items-center gap-2"><CalendarClock size={16} className="text-blue-500" /> Fluxo de Caixa Diário</h4>
+              <span className="text-xs text-[#64748b] capitalize">{currentMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}</span>
+          </div>
+          <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                  <thead>
+                      <tr className="bg-[#f0f9ff] text-[#64748b] text-xs font-bold uppercase tracking-wide">
+                          <th className="px-4 py-2.5 text-left">Data</th>
+                          <th className="px-4 py-2.5 text-right text-green-700">Recebimentos</th>
+                          <th className="px-4 py-2.5 text-right text-red-600">Pagamentos</th>
+                          <th className="px-4 py-2.5 text-right">Saldo Final</th>
+                      </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#f8fafc]">
+                      {cashflowDailyTable.map(row => (
+                          <tr key={row.dateStr} className={`${row.hasMovement ? 'bg-white' : 'bg-[#fafcff]'} hover:bg-[#f0f9ff] transition-colors`}>
+                              <td className="px-4 py-2 text-[#64748b] tabular-nums">
+                                  {new Date(row.dateStr + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                              </td>
+                              <td className="px-4 py-2 text-right tabular-nums">
+                                  {row.recebimentos > 0 ? <span className="text-green-600 font-medium">{formatCurrency(row.recebimentos)}</span> : <span className="text-[#94a3b8]">0,00</span>}
+                              </td>
+                              <td className="px-4 py-2 text-right tabular-nums">
+                                  {row.pagamentos > 0 ? <span className="text-red-500 font-medium">{formatCurrency(row.pagamentos)}</span> : <span className="text-[#94a3b8]">0,00</span>}
+                              </td>
+                              <td className={`px-4 py-2 text-right font-bold tabular-nums ${row.saldoFinal >= 0 ? 'text-[#0a0f1e]' : 'text-red-600'}`}>
+                                  {formatCurrency(row.saldoFinal)}
+                              </td>
+                          </tr>
+                      ))}
+                  </tbody>
+              </table>
+          </div>
+      </div>
+      </div>
+      )}
+
+      {/* --- PAYABLES TAB --- */}
+      {activeTab === 'PAYABLES' && (
+      <div className="space-y-5">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                  <h2 className="text-xl font-bold text-[#0a0f1e]">Contas a Pagar</h2>
+                  <p className="text-[#64748b] text-sm">Despesas do período selecionado.</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                  <select value={payableAccountFilter} onChange={e => setPayableAccountFilter(e.target.value)}
+                      className="border border-[#e0f2fe] rounded-lg px-3 py-2 text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]">
+                      <option value="">Todas as contas</option>
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                  <div className="flex items-center gap-1 bg-[#f0f9ff] rounded-lg p-1">
+                      <button onClick={() => handleMonthChange(payableMonth, setPayableMonth, 'prev')} className="p-1.5 hover:bg-[#e0f2fe] rounded"><ChevronLeft size={18} /></button>
+                      <span className="font-bold text-[#0a0f1e] w-36 text-center capitalize text-sm">
+                          {payableMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
+                      </span>
+                      <button onClick={() => handleMonthChange(payableMonth, setPayableMonth, 'next')} className="p-1.5 hover:bg-[#e0f2fe] rounded"><ChevronRight size={18} /></button>
+                  </div>
+                  <button onClick={() => openTxModal(undefined, 'EXPENSE')}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white rounded-lg shadow-sm"
+                      style={{ background: '#ef4444' }}>
+                      <Plus size={16} /> Nova Despesa
+                  </button>
+              </div>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Vencidos</p>
+                  <p className="text-xl font-bold text-red-700">{formatCurrency(payableStats.overdueAmount)}</p>
+                  <p className="text-xs text-red-500 mt-0.5">{payableStats.overdueCount} lançamento{payableStats.overdueCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Vencem Hoje</p>
+                  <p className="text-xl font-bold text-amber-700">{formatCurrency(payableStats.dueTodayAmount)}</p>
+                  <p className="text-xs text-amber-500 mt-0.5">{payableStats.dueTodayCount} lançamento{payableStats.dueTodayCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">A Vencer</p>
+                  <p className="text-xl font-bold text-blue-700">{formatCurrency(payableStats.upcomingAmount)}</p>
+                  <p className="text-xs text-blue-500 mt-0.5">{payableStats.upcomingCount} lançamento{payableStats.upcomingCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Pagos</p>
+                  <p className="text-xl font-bold text-green-700">{formatCurrency(payableStats.paidAmount)}</p>
+                  <p className="text-xs text-green-500 mt-0.5">{payableStats.paidCount} lançamento{payableStats.paidCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-white border border-[#e0f2fe] rounded-xl p-4 md:col-span-1 col-span-2">
+                  <p className="text-xs font-bold text-[#64748b] uppercase tracking-wide mb-1">Total do Período</p>
+                  <p className="text-xl font-bold text-[#0a0f1e]">{formatCurrency(payableStats.totalAmount)}</p>
+                  <p className="text-xs text-[#64748b] mt-0.5">{payableStats.list.length} lançamento{payableStats.list.length !== 1 ? 's' : ''}</p>
+              </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+              <Search className="absolute left-3 top-2.5 text-[#64748b]" size={16} />
+              <input type="text" placeholder="Pesquisar no período selecionado..." value={payableSearch}
+                  onChange={e => setPayableSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]" />
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
+              {payableStats.list.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-[#64748b]">
+                      <ArrowDownCircle size={36} className="mb-3 text-[#e0f2fe]" />
+                      <p className="font-medium text-sm">Nenhuma despesa neste período.</p>
+                  </div>
+              ) : (
+              <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                      <thead>
+                          <tr className="bg-[#f0f9ff] text-[#64748b] text-xs font-bold uppercase tracking-wide border-b border-[#e0f2fe]">
+                              <th className="px-4 py-3 text-left">Vencimento</th>
+                              <th className="px-4 py-3 text-left hidden md:table-cell">Pagamento</th>
+                              <th className="px-4 py-3 text-left">Resumo do lançamento</th>
+                              <th className="px-4 py-3 text-right">Total</th>
+                              <th className="px-4 py-3 text-right hidden md:table-cell">A Pagar</th>
+                              <th className="px-4 py-3 text-center">Situação</th>
+                              <th className="px-4 py-3"></th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#f0f9ff]">
+                          {payableStats.list.map(tx => {
+                              const contact = contacts.find(c => c.id === tx.contactId);
+                              const account = accounts.find(a => a.id === tx.accountId);
+                              const isPaid = tx.status === 'PAID';
+                              const isOverdue = !isPaid && tx.date < today;
+                              const isDueToday = !isPaid && tx.date === today;
+                              const statusCfg = isPaid
+                                  ? { label: 'Pago', cls: 'bg-green-100 text-green-700' }
+                                  : isOverdue ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
+                                  : isDueToday ? { label: 'Vence hoje', cls: 'bg-amber-100 text-amber-700' }
+                                  : { label: 'A vencer', cls: 'bg-blue-100 text-blue-700' };
+                              return (
+                                  <tr key={tx.id} className={`group hover:bg-[#f0f9ff] transition-colors ${isOverdue ? 'border-l-2 border-red-400' : ''}`}>
+                                      <td className="px-4 py-3 whitespace-nowrap">
+                                          <span className={`text-sm ${isOverdue ? 'text-red-600 font-bold' : 'text-[#64748b]'}`}>
+                                              {new Date(tx.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                          </span>
+                                      </td>
+                                      <td className="px-4 py-3 hidden md:table-cell text-[#64748b] whitespace-nowrap">
+                                          {tx.paidAt ? new Date(tx.paidAt + 'T12:00:00').toLocaleDateString('pt-BR') : '—'}
+                                      </td>
+                                      <td className="px-4 py-3">
+                                          <p className="font-medium text-[#0a0f1e] leading-tight">{tx.description}</p>
+                                          <div className="flex gap-2 mt-0.5 flex-wrap">
+                                              {contact && <span className="text-xs text-[#64748b]">{contact.name}</span>}
+                                              {account && <span className="text-xs text-[#0284c7] bg-[#e0f2fe] px-1.5 py-0.5 rounded">{account.name}</span>}
+                                          </div>
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-bold text-[#0a0f1e] whitespace-nowrap tabular-nums">
+                                          {formatCurrency(tx.amount)}
+                                      </td>
+                                      <td className="px-4 py-3 text-right hidden md:table-cell tabular-nums">
+                                          {isPaid ? <span className="text-[#94a3b8]">0,00</span> : <span className="font-bold text-red-600">{formatCurrency(tx.amount)}</span>}
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                          <button onClick={() => updateTransaction({ ...tx, status: isPaid ? 'PENDING' : 'PAID', paidAt: !isPaid ? new Date().toISOString().split('T')[0] : undefined })}
+                                              className={`px-2 py-1 rounded-full text-xs font-bold ${statusCfg.cls}`}>
+                                              {statusCfg.label}
+                                          </button>
+                                      </td>
+                                      <td className="px-4 py-3">
+                                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                                              <button onClick={() => openTxModal(tx)} className="p-1 text-[#64748b] hover:text-blue-600 rounded"><List size={15} /></button>
+                                              <button onClick={() => deleteTransaction(tx.id)} className="p-1 text-[#64748b] hover:text-red-500 rounded"><Trash2 size={15} /></button>
+                                          </div>
+                                      </td>
+                                  </tr>
+                              );
+                          })}
+                      </tbody>
+                  </table>
+              </div>
+              )}
+          </div>
+      </div>
+      )}
+
+      {/* --- RECEIVABLES TAB --- */}
+      {activeTab === 'RECEIVABLES' && (
+      <div className="space-y-5">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                  <h2 className="text-xl font-bold text-[#0a0f1e]">Contas a Receber</h2>
+                  <p className="text-[#64748b] text-sm">Receitas do período selecionado.</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                  <select value={receivableAccountFilter} onChange={e => setReceivableAccountFilter(e.target.value)}
+                      className="border border-[#e0f2fe] rounded-lg px-3 py-2 text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]">
+                      <option value="">Todas as contas</option>
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                  <div className="flex items-center gap-1 bg-[#f0f9ff] rounded-lg p-1">
+                      <button onClick={() => handleMonthChange(receivableMonth, setReceivableMonth, 'prev')} className="p-1.5 hover:bg-[#e0f2fe] rounded"><ChevronLeft size={18} /></button>
+                      <span className="font-bold text-[#0a0f1e] w-36 text-center capitalize text-sm">
+                          {receivableMonth.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}
+                      </span>
+                      <button onClick={() => handleMonthChange(receivableMonth, setReceivableMonth, 'next')} className="p-1.5 hover:bg-[#e0f2fe] rounded"><ChevronRight size={18} /></button>
+                  </div>
+                  <button onClick={() => openTxModal(undefined, 'INCOME')}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white rounded-lg shadow-sm"
+                      style={{ background: '#16a34a' }}>
+                      <Plus size={16} /> Nova Receita
+                  </button>
+              </div>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Vencidos</p>
+                  <p className="text-xl font-bold text-red-700">{formatCurrency(receivableStats.overdueAmount)}</p>
+                  <p className="text-xs text-red-500 mt-0.5">{receivableStats.overdueCount} lançamento{receivableStats.overdueCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Vencem Hoje</p>
+                  <p className="text-xl font-bold text-amber-700">{formatCurrency(receivableStats.dueTodayAmount)}</p>
+                  <p className="text-xs text-amber-500 mt-0.5">{receivableStats.dueTodayCount} lançamento{receivableStats.dueTodayCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">A Receber</p>
+                  <p className="text-xl font-bold text-blue-700">{formatCurrency(receivableStats.upcomingAmount)}</p>
+                  <p className="text-xs text-blue-500 mt-0.5">{receivableStats.upcomingCount} lançamento{receivableStats.upcomingCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Recebidos</p>
+                  <p className="text-xl font-bold text-green-700">{formatCurrency(receivableStats.receivedAmount)}</p>
+                  <p className="text-xs text-green-500 mt-0.5">{receivableStats.receivedCount} lançamento{receivableStats.receivedCount !== 1 ? 's' : ''}</p>
+              </div>
+              <div className="bg-white border border-[#e0f2fe] rounded-xl p-4 md:col-span-1 col-span-2">
+                  <p className="text-xs font-bold text-[#64748b] uppercase tracking-wide mb-1">Total do Período</p>
+                  <p className="text-xl font-bold text-[#0a0f1e]">{formatCurrency(receivableStats.totalAmount)}</p>
+                  <p className="text-xs text-[#64748b] mt-0.5">{receivableStats.list.length} lançamento{receivableStats.list.length !== 1 ? 's' : ''}</p>
+              </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+              <Search className="absolute left-3 top-2.5 text-[#64748b]" size={16} />
+              <input type="text" placeholder="Pesquisar no período selecionado..." value={receivableSearch}
+                  onChange={e => setReceivableSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-[#e0f2fe] rounded-lg text-sm bg-white text-[#0a0f1e] focus:outline-none focus:ring-2 focus:ring-[#0284c7]" />
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-[#e0f2fe] overflow-hidden">
+              {receivableStats.list.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-[#64748b]">
+                      <ArrowUpCircle size={36} className="mb-3 text-[#e0f2fe]" />
+                      <p className="font-medium text-sm">Nenhuma receita neste período.</p>
+                  </div>
+              ) : (
+              <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                      <thead>
+                          <tr className="bg-[#f0f9ff] text-[#64748b] text-xs font-bold uppercase tracking-wide border-b border-[#e0f2fe]">
+                              <th className="px-4 py-3 text-left">Vencimento</th>
+                              <th className="px-4 py-3 text-left hidden md:table-cell">Recebimento</th>
+                              <th className="px-4 py-3 text-left">Resumo do lançamento</th>
+                              <th className="px-4 py-3 text-right">Total</th>
+                              <th className="px-4 py-3 text-right hidden md:table-cell">A Receber</th>
+                              <th className="px-4 py-3 text-center">Situação</th>
+                              <th className="px-4 py-3"></th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#f0f9ff]">
+                          {receivableStats.list.map(tx => {
+                              const contact = contacts.find(c => c.id === tx.contactId);
+                              const account = accounts.find(a => a.id === tx.accountId);
+                              const isReceived = tx.status === 'PAID';
+                              const isOverdue = !isReceived && tx.date < today;
+                              const isDueToday = !isReceived && tx.date === today;
+                              const statusCfg = isReceived
+                                  ? { label: 'Recebido', cls: 'bg-green-100 text-green-700' }
+                                  : isOverdue ? { label: 'Vencido', cls: 'bg-red-100 text-red-700' }
+                                  : isDueToday ? { label: 'Vence hoje', cls: 'bg-amber-100 text-amber-700' }
+                                  : { label: 'A receber', cls: 'bg-blue-100 text-blue-700' };
+                              return (
+                                  <tr key={tx.id} className={`group hover:bg-[#f0f9ff] transition-colors ${isOverdue ? 'border-l-2 border-red-400' : ''}`}>
+                                      <td className="px-4 py-3 whitespace-nowrap">
+                                          <span className={`text-sm ${isOverdue ? 'text-red-600 font-bold' : 'text-[#64748b]'}`}>
+                                              {new Date(tx.date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                          </span>
+                                      </td>
+                                      <td className="px-4 py-3 hidden md:table-cell text-[#64748b] whitespace-nowrap">
+                                          {tx.paidAt ? new Date(tx.paidAt + 'T12:00:00').toLocaleDateString('pt-BR') : '—'}
+                                      </td>
+                                      <td className="px-4 py-3">
+                                          <p className="font-medium text-[#0a0f1e] leading-tight">{tx.description}</p>
+                                          <div className="flex gap-2 mt-0.5 flex-wrap">
+                                              {contact && <span className="text-xs text-[#64748b]">{contact.name}</span>}
+                                              {account && <span className="text-xs text-[#0284c7] bg-[#e0f2fe] px-1.5 py-0.5 rounded">{account.name}</span>}
+                                          </div>
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-bold text-[#0a0f1e] whitespace-nowrap tabular-nums">
+                                          {formatCurrency(tx.amount)}
+                                      </td>
+                                      <td className="px-4 py-3 text-right hidden md:table-cell tabular-nums">
+                                          {isReceived ? <span className="text-[#94a3b8]">0,00</span> : <span className="font-bold text-green-600">{formatCurrency(tx.amount)}</span>}
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                          <button onClick={() => updateTransaction({ ...tx, status: isReceived ? 'PENDING' : 'PAID', paidAt: !isReceived ? new Date().toISOString().split('T')[0] : undefined })}
+                                              className={`px-2 py-1 rounded-full text-xs font-bold ${statusCfg.cls}`}>
+                                              {statusCfg.label}
+                                          </button>
+                                      </td>
+                                      <td className="px-4 py-3">
+                                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
+                                              <button onClick={() => openTxModal(tx)} className="p-1 text-[#64748b] hover:text-blue-600 rounded"><List size={15} /></button>
+                                              <button onClick={() => deleteTransaction(tx.id)} className="p-1 text-[#64748b] hover:text-red-500 rounded"><Trash2 size={15} /></button>
+                                          </div>
+                                      </td>
+                                  </tr>
+                              );
+                          })}
+                      </tbody>
+                  </table>
+              </div>
+              )}
+          </div>
       </div>
       )}
 

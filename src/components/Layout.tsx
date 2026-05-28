@@ -13,26 +13,29 @@ import {
   Users,
   FileText,
   LogOut,
+  Stethoscope,
 } from 'lucide-react';
 import Logo from '@/components/ui/logo';
 import { AICopilot } from '@/pages';
 
 const PAGE_LABELS: Record<string, string> = {
-  '/dashboard': 'Visão Geral',
-  '/contacts':  'Pacientes & Fornecedores',
-  '/catalog':   'Catálogo de Insumos & Serviços',
-  '/calendar':  'Agenda',
-  '/fiscal':    'Gestão Fiscal',
-  '/finance':   'Financeiro',
-  '/settings':  'Configurações',
+  '/dashboard':     'Visão Geral',
+  '/contacts':      'Pacientes & Fornecedores',
+  '/catalog':       'Catálogo de Insumos & Serviços',
+  '/calendar':      'Agenda',
+  '/professionals': 'Equipe Clínica',
+  '/fiscal':        'Gestão Fiscal',
+  '/finance':       'Financeiro',
+  '/settings':      'Configurações',
 };
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Visão Geral' },
   { to: '/contacts',  icon: Users,           label: 'Pacientes' },
   { to: '/catalog',   icon: Package,         label: 'Insumos & Serviços' },
-  { to: '/calendar',  icon: CalendarDays,    label: 'Agenda' },
-  { to: '/fiscal',    icon: FileText,        label: 'Gestão Fiscal' },
+  { to: '/calendar',       icon: CalendarDays,    label: 'Agenda' },
+  { to: '/professionals',  icon: Stethoscope,     label: 'Equipe Clínica' },
+  { to: '/fiscal',         icon: FileText,        label: 'Gestão Fiscal' },
   { to: '/finance',   icon: CircleDollarSign,label: 'Financeiro' },
 ];
 

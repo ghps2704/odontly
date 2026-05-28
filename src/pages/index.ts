@@ -7,3 +7,4 @@ export { default as Fiscal } from './Fiscal';
 export { default as Settings } from './Settings';
 export { default as Login } from './Login';
 export { default as AICopilot } from './AICopilot';
+export { default as Professionals } from './Professionals';
