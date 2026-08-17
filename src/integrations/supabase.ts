@@ -18,11 +18,13 @@ const getEnvVar = (key: string): string => {
 const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
 const supabaseKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
-// Log de diagnóstico (seguro)
-console.log('Supabase Connection:', {
-  configured: !!(supabaseUrl && supabaseKey),
-  url: supabaseUrl ? `${supabaseUrl.substring(0, 15)}...` : 'Missing'
-});
+// Log de diagnóstico — só em dev, nunca no build de produção
+if (import.meta.env.DEV) {
+  console.log('Supabase Connection:', {
+    configured: !!(supabaseUrl && supabaseKey),
+    url: supabaseUrl ? `${supabaseUrl.substring(0, 15)}...` : 'Missing'
+  });
+}
 
 if (!supabaseUrl || !supabaseKey) {
   console.error("ERRO DE CONFIGURAÇÃO: As variáveis 'VITE_SUPABASE_URL' e 'VITE_SUPABASE_ANON_KEY' são obrigatórias.");

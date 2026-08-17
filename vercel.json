@@ -4,6 +4,7 @@
     { "source": "/catalog",    "destination": "/app.html" },
     { "source": "/contacts",   "destination": "/app.html" },
     { "source": "/calendar",   "destination": "/app.html" },
+    { "source": "/professionals", "destination": "/app.html" },
     { "source": "/fiscal",     "destination": "/app.html" },
     { "source": "/finance",    "destination": "/app.html" },
     { "source": "/settings",   "destination": "/app.html" },
