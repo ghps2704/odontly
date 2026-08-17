@@ -1,7 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Item, Transaction, Appointment, Account, AppSettings, BOMItem, Contact, Invoice, Professional, FinancialCategory, PaymentMethod, TransactionItem } from '@/types';
+import { Item, Transaction, Appointment, Account, AppSettings, BOMItem, Contact, Invoice, Professional, FinancialCategory, PaymentMethod, TransactionItem, CostCenter, PaymentLine } from '@/types';
 import { supabase } from '@/integrations/supabase';
+import { EditScope, generateInstallments, resolveScopeTargets } from '@/lib/installments';
+import { paymentLineToTransactions } from '@/lib/paymentLines';
 
 interface UserSession {
     email: string;
@@ -22,6 +24,7 @@ interface NexusContextType {
   accounts: Account[];
   contacts: Contact[];
   professionals: Professional[];
+  costCenters: CostCenter[];
   invoices: Invoice[];
   settings: AppSettings;
   categories: FinancialCategory[];
@@ -32,8 +35,9 @@ interface NexusContextType {
   addStockEntry: (itemId: string, quantity: number, purchasePrice: number, expiryDate?: string) => void;
   
   addTransaction: (tx: Transaction, generateRecurrence?: boolean) => void;
-  updateTransaction: (tx: Transaction) => void;
-  deleteTransaction: (id: string) => void;
+  addSplitTransaction: (tx: Transaction, lines: PaymentLine[]) => void;
+  updateTransaction: (tx: Transaction, scope?: EditScope) => void;
+  deleteTransaction: (id: string, scope?: EditScope) => void;
   
   addCategory: (cat: FinancialCategory) => void;
   deleteCategory: (id: string) => void;
@@ -60,7 +64,11 @@ interface NexusContextType {
   addProfessional: (prof: Professional) => void;
   updateProfessional: (prof: Professional) => void;
   deleteProfessional: (id: string) => void;
-  
+
+  addCostCenter: (cc: CostCenter) => void;
+  updateCostCenter: (cc: CostCenter) => void;
+  deleteCostCenter: (id: string) => void;
+
   emitInvoice: (id: string) => Promise<void>;
   toggleInvoiceOverdue: (id: string) => void;
   updateSettings: (settings: AppSettings) => void;
@@ -108,6 +116,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
@@ -118,13 +127,14 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setContacts([]);
     setAccounts([]);
     setProfessionals([]);
+    setCostCenters([]);
     setInvoices([]);
     setCategories(INITIAL_CATEGORIES);
     setSettings(DEFAULT_SETTINGS);
   }, []);
 
   const fetchData = useCallback(async (userId: string) => {
-    console.log("NexusContext: Buscando dados para", userId);
+    if (import.meta.env.DEV) console.log("NexusContext: Buscando dados para", userId);
 
     const loadTable = async (table: string, setter: (data: any) => void) => {
         try {
@@ -144,6 +154,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             loadTable('contacts', setContacts),
             loadTable('accounts', setAccounts),
             loadTable('professionals', setProfessionals),
+            loadTable('cost_centers', setCostCenters),
             loadTable('invoices', setInvoices),
             (async () => {
                 try {
@@ -180,7 +191,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (error) throw error;
 
         if (session?.user && mounted) {
-          console.log("NexusContext: Sessão restaurada.");
+          if (import.meta.env.DEV) console.log("NexusContext: Sessão restaurada.");
           const newUser = {
             email: session.user.email!,
             companyId: session.user.id,
@@ -206,7 +217,7 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("NexusContext: Auth Change:", event);
+      if (import.meta.env.DEV) console.log("NexusContext: Auth Change:", event);
       
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user && mounted) {
           const newUser = {
@@ -282,6 +293,13 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (error) console.error(`Insert ${table} error:`, error);
   };
 
+  const insertManyDB = async (table: string, rows: any[]) => {
+    if (!user || rows.length === 0) return;
+    const payload = rows.map(r => ({ ...r, id: r.id.toString(), user_id: user.uid }));
+    const { error } = await supabase.from(table).insert(payload);
+    if (error) console.error(`Insert ${table} error:`, error);
+  };
+
   const updateDB = async (table: string, id: string, data: any) => {
     if (!user) return;
     const { error } = await supabase.from(table).update(data).eq('id', id.toString()).eq('user_id', user.uid);
@@ -332,24 +350,89 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       impactGerencial: tx.impactGerencial !== undefined ? tx.impactGerencial : true,
       impactFiscal: tx.impactFiscal !== undefined ? tx.impactFiscal : (tx.type === 'INCOME')
     };
-    let txsToAdd = [txWithFlags];
+
+    const occurrences = txWithFlags.recurrence?.occurrences ?? 1;
+    const txsToAdd = (generateRecurrence && txWithFlags.recurrence && occurrences > 1)
+      ? generateInstallments(
+          txWithFlags,
+          txWithFlags.recurrence.frequency,
+          occurrences,
+          txWithFlags.recurrence.groupId || txWithFlags.id
+        )
+      : [txWithFlags];
+
     setTransactions(prev => [...prev, ...txsToAdd]);
-    for (const t of txsToAdd) await insertDB('transactions', t);
-    if (txWithFlags.status === 'PAID') {
-      const acc = accounts.find(a => a.id === tx.accountId);
-      if (acc) {
-        const newBalance = tx.type === 'INCOME' ? acc.balance + tx.amount : acc.balance - tx.amount;
-        updateAccount({ ...acc, balance: newBalance });
-      }
-    }
+    await insertManyDB('transactions', txsToAdd);
+
+    // Apply account balance deltas for whichever generated rows are already PAID
+    // (normally just the first installment, if any — future ones are always PENDING).
+    const deltasByAccount = new Map<string, number>();
+    txsToAdd.filter(t => t.status === 'PAID').forEach(t => {
+      const delta = t.type === 'INCOME' ? t.amount : -t.amount;
+      deltasByAccount.set(t.accountId, (deltasByAccount.get(t.accountId) || 0) + delta);
+    });
+    deltasByAccount.forEach((delta, accountId) => {
+      const acc = accounts.find(a => a.id === accountId);
+      if (acc) updateAccount({ ...acc, balance: acc.balance + delta });
+    });
   };
 
-  const updateTransaction = (updatedTx: Transaction) => {
-    const oldTx = transactions.find(t => t.id === updatedTx.id);
-    setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
-    updateDB('transactions', updatedTx.id, updatedTx);
+  // Split-payment path (Fase D): expands each PaymentLine into its own set of
+  // installment rows via paymentLineToTransactions — same row shape/rules as
+  // addTransaction's generateRecurrence path, just sourced from an explicit,
+  // possibly hand-edited schedule instead of an even split.
+  const addSplitTransaction = async (tx: Transaction, lines: PaymentLine[]) => {
+    const txWithFlags: Transaction = {
+      ...tx,
+      impactGerencial: tx.impactGerencial !== undefined ? tx.impactGerencial : true,
+      impactFiscal: tx.impactFiscal !== undefined ? tx.impactFiscal : (tx.type === 'INCOME')
+    };
 
+    const saleGroupId = txWithFlags.id;
+    const txsToAdd = lines.flatMap(line => paymentLineToTransactions(txWithFlags, line, saleGroupId));
+
+    setTransactions(prev => [...prev, ...txsToAdd]);
+    await insertManyDB('transactions', txsToAdd);
+
+    const deltasByAccount = new Map<string, number>();
+    txsToAdd.filter(t => t.status === 'PAID').forEach(t => {
+      const delta = t.type === 'INCOME' ? t.amount : -t.amount;
+      deltasByAccount.set(t.accountId, (deltasByAccount.get(t.accountId) || 0) + delta);
+    });
+    deltasByAccount.forEach((delta, accountId) => {
+      const acc = accounts.find(a => a.id === accountId);
+      if (acc) updateAccount({ ...acc, balance: acc.balance + delta });
+    });
+  };
+
+  const stripInstallmentSuffix = (desc: string) => desc.replace(/\s\(\d+\/\d+\)$/, '');
+
+  const updateTransaction = (updatedTx: Transaction, scope: EditScope = 'ONLY_THIS') => {
+    const oldTx = transactions.find(t => t.id === updatedTx.id);
     if (!oldTx) return;
+
+    const groupId = updatedTx.recurrence?.groupId;
+    const targets = (groupId && scope !== 'ONLY_THIS')
+      ? resolveScopeTargets(transactions.filter(t => t.recurrence?.groupId === groupId), updatedTx.id, scope)
+      : [oldTx];
+
+    // Fields that cascade to sibling installments on a bulk edit. Identity
+    // (id/date/installments) and payment state always stay per-row — a bulk
+    // edit never changes when a sibling is due or whether it's been paid.
+    const { id: _id, date: _date, installments: _installments, status: _status, paidAt: _paidAt, isReconciled: _isReconciled, description: _description, ...cascadeFields } = updatedTx;
+    const baseDescription = stripInstallmentSuffix(updatedTx.description);
+
+    const rowsToWrite: Transaction[] = targets.map(t => {
+      if (t.id === updatedTx.id) return updatedTx;
+      const suffix = t.installments && t.installments.total > 1 ? ` (${t.installments.current}/${t.installments.total})` : '';
+      return { ...t, ...cascadeFields, description: `${baseDescription}${suffix}` };
+    });
+
+    setTransactions(prev => prev.map(t => rowsToWrite.find(r => r.id === t.id) || t));
+    rowsToWrite.forEach(row => updateDB('transactions', row.id, row));
+
+    // Account balance reconciliation only concerns the primary edited row —
+    // cascaded siblings never have their status/account changed here.
     const wasPaid = oldTx.status === 'PAID';
     const isPaid = updatedTx.status === 'PAID';
 
@@ -382,17 +465,28 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const deleteTransaction = (id: string) => {
+  const deleteTransaction = (id: string, scope: EditScope = 'ONLY_THIS') => {
     const tx = transactions.find(t => t.id === id);
-    setTransactions(transactions.filter(t => t.id !== id));
-    deleteDB('transactions', id);
-    if (tx && tx.status === 'PAID') {
-      const acc = accounts.find(a => a.id === tx.accountId);
-      if (acc) {
-        const newBalance = tx.type === 'INCOME' ? acc.balance - tx.amount : acc.balance + tx.amount;
-        updateAccount({ ...acc, balance: newBalance });
-      }
-    }
+    if (!tx) return;
+
+    const groupId = tx.recurrence?.groupId;
+    const targets = (groupId && scope !== 'ONLY_THIS')
+      ? resolveScopeTargets(transactions.filter(t => t.recurrence?.groupId === groupId), id, scope)
+      : [tx];
+    const targetIds = new Set(targets.map(t => t.id));
+
+    setTransactions(prev => prev.filter(t => !targetIds.has(t.id)));
+    targets.forEach(t => deleteDB('transactions', t.id));
+
+    const deltasByAccount = new Map<string, number>();
+    targets.filter(t => t.status === 'PAID').forEach(t => {
+      const delta = t.type === 'INCOME' ? -t.amount : t.amount;
+      deltasByAccount.set(t.accountId, (deltasByAccount.get(t.accountId) || 0) + delta);
+    });
+    deltasByAccount.forEach((delta, accountId) => {
+      const acc = accounts.find(a => a.id === accountId);
+      if (acc) updateAccount({ ...acc, balance: acc.balance + delta });
+    });
   };
 
   const addCategory = (cat: FinancialCategory) => {
@@ -530,6 +624,19 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     deleteDB('professionals', id);
   };
 
+  const addCostCenter = (cc: CostCenter) => {
+    setCostCenters(prev => [...prev, cc]);
+    insertDB('cost_centers', cc);
+  };
+  const updateCostCenter = (cc: CostCenter) => {
+    setCostCenters(prev => prev.map(x => x.id === cc.id ? cc : x));
+    updateDB('cost_centers', cc.id, cc);
+  };
+  const deleteCostCenter = (id: string) => {
+    setCostCenters(prev => prev.filter(c => c.id !== id));
+    deleteDB('cost_centers', id);
+  };
+
   const emitInvoice = async (id: string) => {
     const update = { status: 'ISSUED' as const, emittedAt: new Date().toISOString() };
     setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, ...update } : inv));
@@ -556,14 +663,15 @@ export const NexusProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <NexusContext.Provider value={{
       user, isLoading, login, logout,
-      items, transactions, appointments, accounts, contacts, professionals, invoices, settings, categories,
+      items, transactions, appointments, accounts, contacts, professionals, costCenters, invoices, settings, categories,
       addItem, updateItem, deleteItem, addStockEntry,
-      addTransaction, updateTransaction, deleteTransaction,
+      addTransaction, addSplitTransaction, updateTransaction, deleteTransaction,
       addCategory, deleteCategory,
       addAccount, updateAccount, deleteAccount,
       addAppointment, updateAppointmentStatus, completeAppointment,
       addContact, updateContact, deleteContact,
       addProfessional, updateProfessional, deleteProfessional,
+      addCostCenter, updateCostCenter, deleteCostCenter,
       emitInvoice, toggleInvoiceOverdue, updateSettings, verifyPin
     }}>
       {children}
