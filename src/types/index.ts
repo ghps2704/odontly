@@ -57,6 +57,29 @@ export interface RecurrenceConfig {
   groupId: string; // Links related recurring transactions
 }
 
+// A single scheduled installment within a PaymentLine — user-editable in the
+// TransactionPanel's payment-lines editor before saving (Fase D).
+export interface PaymentInstallment {
+  date: string;
+  amount: number;
+}
+
+// One "payment condition" of a split sale (e.g. 30% via Pix, 70% via Boleto
+// in 3x). Form-state only — never persisted as-is; on save, each line is
+// expanded (via paymentLineToTransactions in src/lib/paymentLines.ts) into
+// regular Transaction rows sharing a saleGroupId.
+export interface PaymentLine {
+  id: string;
+  percentage: number; // 0-100, sums to 100 across all lines of a sale
+  amount: number; // percentage% of the transaction total; editable directly in R$ too
+  paymentMethod: PaymentMethod;
+  accountId: string;
+  dueDate: string; // anchor date for this line's first installment
+  frequency: RecurrenceFrequency;
+  occurrences: number;
+  schedule: PaymentInstallment[]; // one entry per installment, user-editable
+}
+
 export interface FinancialCategory {
   id: string;
   name: string;
@@ -93,27 +116,35 @@ export interface TransactionItem {
 
 export interface Transaction {
   id: string;
-  date: string; // Competence Date (Data de Competência)
+  date: string; // Competence Date (Data de Competência) for expenses; Sale Date (Data da Venda) for income
+  dueDate?: string; // Vencimento — separate from competência for expenses. Falls back to `date` when unset.
   paidAt?: string; // Cash Date (Data de Caixa/Pagamento Real)
   description: string;
   amount: number; // Total Sum
   type: TransactionType;
-  
+
   // Legacy/Header Category (Used for display in simple lists)
-  category: string; 
-  categoryId?: string; 
-  
+  category: string;
+  categoryId?: string;
+
   // DETAILED ITEMS: The source of truth for DRE
   items: TransactionItem[];
+  discount?: { type: 'AMOUNT' | 'PERCENT'; value: number }; // Income only — net total = items total - discount
 
   accountId: string;
   paymentMethod: PaymentMethod;
   contactId: string; // MANDATORY
-  appointmentId?: string; 
+  appointmentId?: string;
+  professionalId?: string; // Vendedor responsável
+  sequenceNumber?: number; // Auto-assigned display number (Número da venda/despesa)
+  saleType?: 'QUOTE' | 'SINGLE' | 'RECURRING'; // Income only — QUOTE never counts toward cashflow/DRE until converted
+  costCenterId?: string;
   status: 'PENDING' | 'PAID';
-  isReconciled: boolean; 
+  isReconciled: boolean;
   recurrence?: RecurrenceConfig;
   installments?: { current: number; total: number };
+  saleGroupId?: string;   // Ties together every row generated from every payment line of the same split sale
+  paymentLineId?: string; // Which PaymentLine (see paymentLines.ts) this specific row/installment came from
   attachments?: Attachment[];
 
   // --- FP&A INTELLIGENCE FLAGS (RF022) ---
@@ -131,6 +162,12 @@ export interface Account {
   initialBalance: number; // For reconciliation
   type: 'BANK' | 'CASH' | 'WALLET' | 'INVESTMENT';
   color?: string;
+}
+
+// Separates cost areas within the business (e.g. Marketing, Produtos)
+export interface CostCenter {
+  id: string;
+  name: string;
 }
 
 export type AppointmentStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
